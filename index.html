@@ -184,6 +184,11 @@
               <input required name="pincode" inputmode="numeric" placeholder="6-digit pincode" />
             </label>
           </form>
+          <button class="btn btn--primary btn--full" id="toPaymentBtn" type="button">
+  Make payment
+</button>
+<div class="small muted" id="detailsMsg"></div>
+
         </div>
 
         <div class="checkoutCard">
@@ -223,7 +228,7 @@
           </div>
 
           <!-- Important: button submits the delivery form -->
-          <button class="btn btn--primary btn--full" id="placeOrderBtn" type="submit" form="checkoutForm">
+          <button class="btn btn--primary btn--full" id="placeOrderBtn">Finish order</button>
             Place order
           </button>
           <div class="small muted" id="placeOrderMsg"></div>
@@ -253,3 +258,4 @@
   <script src="script.js"></script>
 </body>
 </html>
+
