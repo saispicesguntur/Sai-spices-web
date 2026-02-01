@@ -1,99 +1,89 @@
 <!doctype html>
-<html lang="en-IN">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sai Spices | Red Chilli Powder</title>
-  <meta name="description" content="Sai Spices – Red chilli powder. Free delivery in Andhra Pradesh & Telangana. Pay via UPI or Card." />
-  <meta name="theme-color" content="#9a3412" />
-
+  <title>Sai Spices — Fresh Homemade Spices</title>
+  <meta name="description" content="Sai Spices — Fresh homemade spice powders. Order online (AP & TG delivery).">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
-  <!-- Announcement -->
-  <div class="announce">
-    <div class="container announce__inner">
-      <div>🚚 Free delivery in AP & Telangana • Simple checkout • UPI or Card</div>
-      <div class="announce__right">Call: <a href="tel:+910000000000">+91 00000 00000</a></div>
-    </div>
-  </div>
 
-  <!-- Header -->
-  <header class="header" id="top">
-    <div class="container header__inner">
+  <!-- Top Bar -->
+  <header class="top">
+    <div class="container nav">
       <a class="brand" href="#top" aria-label="Sai Spices Home">
-        <div class="brand__mark" aria-hidden="true">🌶️</div>
+        <img class="brand__logo" src="logo.jpg" alt="Sai Spices logo" />
         <div class="brand__text">
           <div class="brand__name">Sai Spices</div>
-          <div class="brand__tag">Guntur • Fresh • Hygienic</div>
+          <div class="brand__sub">Homemade • Fresh • AP & TG delivery</div>
         </div>
       </a>
 
-      <nav class="nav" aria-label="Primary navigation">
+      <nav class="navlinks">
         <a href="#shop">Shop</a>
-        <a href="#checkout">Checkout</a>
+        <a href="#how">How it works</a>
+        <a href="#contact">Contact</a>
       </nav>
 
-      <div class="header__actions">
-        <button class="iconBtn" id="openCartBtn" type="button" aria-label="Open cart">
-          <span class="icon">🛒</span>
-          <span class="pillCount" id="cartCount">0</span>
+      <div class="actions">
+        <button class="btn btn--ghost" id="openCartBtn" type="button" aria-label="Open cart">
+          🛒 Cart <span class="cartCount" id="cartCount">0</span>
         </button>
         <a class="btn btn--primary" href="#shop">Shop now</a>
       </div>
     </div>
   </header>
 
-  <main>
-    <!-- Hero -->
+  <!-- Hero -->
+  <main id="top">
     <section class="hero">
       <div class="container hero__grid">
         <div class="hero__copy">
-          <div class="hero__kicker">Only AP & Telangana (Free Delivery)</div>
-          <h1 class="hero__title">Red Chilli Powder — fresh, strong & full flavour.</h1>
-          <p class="hero__lead">
-            Select pack size, add to cart, then checkout.
-            Payment: <b>UPI or Card</b>.
+          <div class="pill">Fresh spice powders • Made in India • Delivery: AP & TG</div>
+          <h1>Homemade spices with real flavour.</h1>
+          <p class="lead">
+            Buy Red Chilli Powder, Turmeric Powder, Jeera Powder, and Garam Masala — freshly packed.
+            Simple ordering, fast response.
           </p>
 
-          <div class="hero__cta">
-            <a class="btn btn--primary" href="#shop">View packs</a>
-            <a class="btn btn--ghost" href="#checkout">Go to checkout</a>
+          <div class="hero__buttons">
+            <a class="btn btn--primary" href="#shop">View products</a>
+            <a class="btn btn--ghost" href="#contact">Contact us</a>
           </div>
 
-          <div class="trustRow">
-            <div class="trustItem">✅ Free delivery (AP & TG)</div>
-            <div class="trustItem">✅ Hygienic packing</div>
-            <div class="trustItem">✅ Fresh batches</div>
-          </div>
-        </div>
-
-        <div class="hero__panel">
-          <div class="panelCard">
-            <div class="panelCard__top">
-              <div class="badge">Featured</div>
-              <div class="muted small">Red chilli powder</div>
-            </div>
-
-            <div class="heroProduct">
-              <div class="prodImg prodImg--chilli" aria-label="Sample chilli powder image"></div>
-              <div>
-                <div class="prodName">Red Chilli Powder</div>
-                <div class="muted small">Select size & add to cart</div>
-              </div>
-            </div>
-
-            <div class="divider"></div>
-
-            <button class="btn btn--primary btn--full" id="openCartBtn2" type="button">Open cart</button>
-            <p class="muted small" style="margin:10px 0 0;">We will add more products later.</p>
+          <div class="trust">
+            <div class="trust__item">✅ Clean packing</div>
+            <div class="trust__item">✅ Homemade blends</div>
+            <div class="trust__item">✅ AP & TG delivery</div>
           </div>
         </div>
+
+        <aside class="card">
+          <div class="card__top">
+            <div class="badge">Quick order</div>
+            <div class="mini">Orders go to our team</div>
+          </div>
+
+          <div class="miniLine">🧾 Add items to cart</div>
+          <div class="miniLine">📝 Fill checkout details</div>
+          <div class="miniLine">✅ Place order (saved in Sheet)</div>
+
+          <div class="divider"></div>
+
+          <div class="note">
+            <strong>Delivery area:</strong> Andhra Pradesh & Telangana only (for now).
+          </div>
+
+          <button class="btn btn--primary btn--full" type="button" id="heroOpenCart">
+            Open cart
+          </button>
+
+          <p class="small muted" style="margin:10px 0 0;">
+            This is a simple ordering website. We’ll confirm your order by phone.
+          </p>
+        </aside>
       </div>
     </section>
 
@@ -101,189 +91,160 @@
     <section class="section" id="shop">
       <div class="container">
         <div class="sectionHead">
-          <h2>Shop</h2>
-          <p class="muted">Only one product for now. More items later.</p>
+          <h2>Shop spices</h2>
+          <p class="muted">Choose size → Add to cart → Checkout. Prices in ₹.</p>
         </div>
 
-        <div class="productGrid" id="productGrid"></div>
+        <div class="grid products" id="productGrid">
+          <!-- Filled by script.js -->
+        </div>
       </div>
     </section>
 
-    <!-- Checkout -->
-    <section class="section section--alt" id="checkout">
-      <div class="container checkout">
-        <div class="checkout__left">
-          <div class="sectionHead">
-            <h2>Checkout</h2>
-            <p class="muted">Free delivery only in Andhra Pradesh & Telangana.</p>
-          </div>
-
-          <div class="summaryCard">
-            <div class="sumRow"><span class="muted">Items</span><b id="sumItems">0</b></div>
-            <div class="sumRow"><span class="muted">Subtotal</span><b id="sumSubtotal">₹0</b></div>
-            <div class="sumRow"><span class="muted">Delivery</span><b id="sumShipping">₹0</b></div>
-            <div class="sumRow sumRow--total"><span>Total</span><b id="sumTotal">₹0</b></div>
-
-            <div class="warnBox" id="stateWarn" style="display:none;">
-              ❌ Currently delivery available only in <b>Andhra Pradesh</b> & <b>Telangana</b>.
-            </div>
-
-            <button class="btn btn--ghost btn--full" id="openCartBtn3" type="button">Edit cart</button>
-          </div>
-
-          <div class="payInfo">
-            <div class="payTitle">Payment</div>
-            <p class="muted small">We are keeping it simple. (Online gateway can be added later.)</p>
-          </div>
+    <!-- How it works -->
+    <section class="section alt" id="how">
+      <div class="container">
+        <div class="sectionHead">
+          <h2>How it works</h2>
+          <p class="muted">Simple steps — no stress.</p>
         </div>
 
-        <form class="form" id="orderForm">
-          <div class="grid2">
-            <div class="field">
-              <label for="firstName">First name</label>
-              <input id="firstName" required placeholder="First name" />
-            </div>
-            <div class="field">
-              <label for="lastName">Last name</label>
-              <input id="lastName" required placeholder="Last name" />
-            </div>
+        <div class="grid how">
+          <div class="box">
+            <div class="box__title">1) Choose products</div>
+            <p class="muted">Select sizes and add items to your cart.</p>
           </div>
-
-          <div class="field">
-            <label for="phone">Phone</label>
-            <input id="phone" required placeholder="10-digit mobile number" inputmode="numeric" />
+          <div class="box">
+            <div class="box__title">2) Checkout</div>
+            <p class="muted">Enter your delivery address (AP/TG).</p>
           </div>
-
-          <div class="field">
-            <label for="pincode">Pincode</label>
-            <input id="pincode" required placeholder="6-digit pincode" inputmode="numeric" />
+          <div class="box">
+            <div class="box__title">3) We confirm</div>
+            <p class="muted">We confirm availability and delivery by phone.</p>
           </div>
-
-          <div class="field">
-            <label for="address1">Address line 1</label>
-            <input id="address1" required placeholder="House no, street, building" />
-          </div>
-
-          <div class="field">
-            <label for="area">Area / Locality</label>
-            <input id="area" required placeholder="Area / locality" />
-          </div>
-
-          <div class="grid2">
-            <div class="field">
-              <label for="city">City</label>
-              <input id="city" required placeholder="City" />
-            </div>
-            <div class="field">
-              <label for="district">District</label>
-              <input id="district" required placeholder="District" />
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="state">State</label>
-            <select id="state" required>
-              <option value="" selected disabled>Select state</option>
-              <option>Andhra Pradesh</option>
-              <option>Telangana</option>
-              <option>Other</option>
-            </select>
-            <div class="muted small">Only AP & Telangana are supported now.</div>
-          </div>
-
-          <div class="field">
-            <label>Payment method</label>
-            <div class="payRow">
-              <label class="radio">
-                <input type="radio" name="payMethod" value="UPI" checked />
-                <span>UPI</span>
-              </label>
-              <label class="radio">
-                <input type="radio" name="payMethod" value="CARD" />
-                <span>Card</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="field" id="upiField">
-            <label for="upiRef">UPI Reference / UTR</label>
-            <input id="upiRef" placeholder="UPI UTR / reference number" />
-          </div>
-
-          <div class="field" id="cardField" style="display:none;">
-            <label for="cardRef">Card payment reference</label>
-            <input id="cardRef" placeholder="If available (optional)" />
-          </div>
-
-          <div class="field">
-            <label for="notes">Notes (optional)</label>
-            <input id="notes" placeholder="Any special request" />
-          </div>
-
-          <button class="btn btn--primary btn--full" id="placeOrderBtn" type="submit">Place Order</button>
-
-          <div class="success" id="successBox" role="status" aria-live="polite">
-            ✅ Order placed! Your order ID is <b id="orderIdOut"></b>.
-          </div>
-          <div class="error" id="errorBox" role="alert">
-            ❌ Please add products to cart before placing an order.
-          </div>
-        </form>
+        </div>
       </div>
     </section>
 
-    <footer class="footer">
-      <div class="container footer__inner">
-        <div>
-          <div class="footer__brand">Sai Spices</div>
-          <div class="muted small">Guntur • Andhra Pradesh</div>
+    <!-- Contact -->
+    <section class="section" id="contact">
+      <div class="container">
+        <div class="sectionHead">
+          <h2>Contact</h2>
+          <p class="muted">For bulk orders and questions.</p>
         </div>
-        <div class="footer__links">
-          <a href="#shop">Shop</a>
-          <a href="#checkout">Checkout</a>
+
+        <div class="contactCard">
+          <div>
+            <div class="contactTitle">Sai Spices</div>
+            <div class="muted">Homemade spice powders</div>
+            <div class="muted" style="margin-top:10px;"><strong>Delivery:</strong> AP & TG only</div>
+          </div>
+
+          <div class="contactBtns">
+            <!-- Replace phone number/email if you want -->
+            <a class="btn btn--ghost" href="tel:+919999999999">📞 Call</a>
+            <a class="btn btn--primary" href="#shop">Shop now</a>
+          </div>
         </div>
-        <div class="footer__copy muted small">© <span id="year"></span> Sai Spices</div>
       </div>
-    </footer>
+    </section>
   </main>
 
-  <!-- Cart Drawer -->
-  <div class="drawer" id="cartDrawer" aria-hidden="true">
-    <div class="drawer__panel" role="dialog" aria-modal="true" aria-label="Cart">
-      <div class="drawer__head">
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer__grid">
+      <div class="footerBrand">
+        <img class="footerLogo" src="logo.jpg" alt="Sai Spices logo" />
         <div>
-          <div class="drawer__title">Your Cart</div>
-          <div class="muted small" id="cartMeta">0 items</div>
-        </div>
-        <button class="iconBtn" id="closeCartBtn" type="button" aria-label="Close cart">✕</button>
-      </div>
-
-      <div class="drawer__body">
-        <div id="cartItems"></div>
-        <div class="divider"></div>
-
-        <div class="drawerTotals">
-          <div class="sumRow"><span class="muted">Subtotal</span><b id="cartSubtotal">₹0</b></div>
-          <div class="sumRow"><span class="muted">Delivery (AP/TG)</span><b id="cartShip">₹0</b></div>
-          <div class="sumRow sumRow--total"><span>Total</span><b id="cartTotal">₹0</b></div>
+          <div class="footerName">Sai Spices</div>
+          <div class="muted small">Fresh homemade spices • AP & TG delivery</div>
         </div>
       </div>
 
-      <div class="drawer__foot">
-        <a class="btn btn--primary btn--full" href="#checkout" id="goCheckoutBtn">Go to checkout</a>
-        <button class="btn btn--ghost btn--full" id="clearCartBtn" type="button">Clear cart</button>
+      <div class="footerLinks">
+        <a href="#shop">Shop</a>
+        <a href="#how">How it works</a>
+        <a href="#contact">Contact</a>
+      </div>
+
+      <div class="footerCopy">
+        <div class="small muted">© <span id="year"></span> Sai Spices</div>
+        <div class="small muted">Made with Thrive Group Solutions</div>
       </div>
     </div>
-    <div class="drawer__backdrop" id="drawerBackdrop" aria-hidden="true"></div>
-  </div>
+  </footer>
 
-  <!-- Mobile Sticky -->
-  <div class="stickyBar">
-    <button class="stickyBtn stickyBtn--primary" id="stickyCartBtn" type="button">
-      Cart <span class="pillCount" id="cartCount2">0</span>
-    </button>
-    <a class="stickyBtn" href="#checkout">Checkout</a>
-  </div>
+  <!-- CART DRAWER -->
+  <aside class="cart" id="cartDrawer" aria-label="Shopping cart" aria-hidden="true">
+    <div class="cart__overlay" id="cartOverlay"></div>
+
+    <div class="cart__panel">
+      <div class="cart__head">
+        <div class="cart__title">Your cart</div>
+        <button class="iconBtn" id="closeCartBtn" aria-label="Close cart">✕</button>
+      </div>
+
+      <div class="cart__items" id="cartItems">
+        <!-- items here -->
+      </div>
+
+      <div class="cart__summary">
+        <div class="row">
+          <span class="muted">Subtotal</span>
+          <strong id="cartSubtotal">₹0</strong>
+        </div>
+        <div class="row small muted">Delivery: AP & TG only (we confirm by phone).</div>
+      </div>
+
+      <div class="checkout">
+        <h3 class="checkoutTitle">Checkout</h3>
+
+        <form id="checkoutForm" class="form">
+          <div class="twoCol">
+            <label>Full name
+              <input name="name" required placeholder="Your name" />
+            </label>
+            <label>Phone
+              <input name="phone" required placeholder="10-digit mobile" />
+            </label>
+          </div>
+
+          <label>Email (optional)
+            <input name="email" type="email" placeholder="you@email.com" />
+          </label>
+
+          <label>Full address (AP/TG only)
+            <input name="address" required placeholder="House/Street, Area" />
+          </label>
+
+          <div class="twoCol">
+            <label>City
+              <input name="city" required placeholder="City" />
+            </label>
+            <label>Pincode
+              <input name="pincode" required placeholder="Pincode" />
+            </label>
+          </div>
+
+          <label>Notes (optional)
+            <input name="notes" placeholder="Any instructions (optional)" />
+          </label>
+
+          <p class="small muted" style="margin:6px 0 0;">
+            By placing order, you confirm delivery is within Andhra Pradesh or Telangana.
+          </p>
+
+          <button class="btn btn--primary btn--full" type="submit" id="placeOrderBtn">
+            Place order
+          </button>
+
+          <p class="success" id="successMsg">✅ Order sent successfully! We will contact you soon.</p>
+          <p class="error" id="errorMsg">❌ Something went wrong. Please try again.</p>
+        </form>
+      </div>
+    </div>
+  </aside>
 
   <script src="script.js"></script>
 </body>
