@@ -1,426 +1,328 @@
-/* =========================
-   CONFIG (edit these)
-========================= */
+/**
+ * IMPORTANT:
+ * 1) Deploy the Google Apps Script (code below) as a Web App
+ * 2) Paste the Web App URL here:
+ */
+const WEB_APP_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
 
-// Your business UPI ID (payee). Replace this:
-const PAYEE_UPI = "saipices@upi";  // <-- CHANGE THIS to real UPI ID
-
-// Optional: Google Apps Script URL (your sheet web app)
-// If you want to save orders in Google Sheet, keep it.
-// If you don't want it, leave as empty string "".
-const SHEETS_WEBAPP_URL =
-  "https://script.google.com/macros/s/AKfycbzjCjfHAvncaUBKhnn97Mww34dKCdQc1Gqx6dyxklMhwfYrWROhlM_St3u5uHlQoXv20A/exec";
-
-/* =========================
-   PRODUCTS
-========================= */
+// UPI ID placeholder (you will update later)
+const UPI_ID = "UPI_ID_TO_ADD_LATER";
 
 const PRODUCTS = [
   {
     id: "chilli",
     name: "Red Chilli Powder",
-    note: "Bright colour • strong flavour",
+    desc: "Bright colour • strong flavour",
     variants: [
       { label: "100 g", price: 65 },
       { label: "200 g", price: 119 },
       { label: "500 g", price: 189 },
-      { label: "1 kg", price: 289 }
-    ]
+      { label: "1 kg", price: 289 },
+    ],
   },
   {
     id: "turmeric",
     name: "Turmeric Powder",
-    note: "Pure & aromatic",
+    desc: "Pure & aromatic",
     variants: [
       { label: "50 g", price: 29 },
-      { label: "100 g", price: 59 }
-    ]
+      { label: "100 g", price: 59 },
+    ],
   },
   {
     id: "jeera",
     name: "Homemade Jeera Powder",
-    note: "Fresh roasted • homemade",
+    desc: "Fresh roasted • homemade",
     variants: [
       { label: "50 g", price: 25 },
       { label: "100 g", price: 49 },
-      { label: "250 g", price: 79 }
-    ]
+      { label: "250 g", price: 79 },
+    ],
   },
   {
     id: "garam",
     name: "Homemade Garam Masala",
-    note: "Balanced blend • homemade",
+    desc: "Balanced blend • homemade",
     variants: [
       { label: "50 g", price: 29 },
       { label: "100 g", price: 59 },
-      { label: "150 g", price: 89 }
-    ]
-  }
+      { label: "150 g", price: 89 },
+    ],
+  },
 ];
 
-const formatINR = (n) => `₹${Number(n).toLocaleString("en-IN")}`;
+const cart = []; // {productId, name, variantLabel, price, qty}
 
-/* =========================
-   STATE
-========================= */
-
-let cart = []; // [{key, productId, productName, variantLabel, unitPrice, qty}]
 const $ = (id) => document.getElementById(id);
 
-/* =========================
-   RENDER PRODUCTS
-========================= */
+function formatINR(n){
+  return "₹" + Number(n).toLocaleString("en-IN");
+}
 
-function renderProducts() {
+function cartTotals(){
+  const items = cart.reduce((a,c)=>a + c.qty, 0);
+  const total = cart.reduce((a,c)=>a + (c.price * c.qty), 0);
+  return { items, total };
+}
+
+function renderProducts(){
   const grid = $("productsGrid");
   grid.innerHTML = "";
 
-  PRODUCTS.forEach((p) => {
-    const card = document.createElement("div");
-    card.className = "card";
+  PRODUCTS.forEach(p => {
+    const el = document.createElement("div");
+    el.className = "product";
 
-    const selectId = `sel_${p.id}`;
-    const qtyId = `qty_${p.id}`;
+    const variantOptions = p.variants.map((v,i)=>`<option value="${i}">${v.label} — ${formatINR(v.price)}</option>`).join("");
 
-    card.innerHTML = `
+    el.innerHTML = `
       <h3>${p.name}</h3>
-      <p>${p.note}</p>
-
-      <div class="selectRow">
-        <select id="${selectId}">
-          ${p.variants
-            .map(
-              (v, idx) =>
-                `<option value="${idx}">${v.label} — ${formatINR(v.price)}</option>`
-            )
-            .join("")}
+      <p>${p.desc}</p>
+      <div class="row">
+        <select class="variantSel" aria-label="Select size">
+          ${variantOptions}
         </select>
-
-        <input id="${qtyId}" type="number" min="1" value="1" />
+        <input class="qty" type="number" min="1" value="1" aria-label="Quantity" />
+        <button class="btn btn--primary addBtn">Add to cart</button>
       </div>
-
-      <button class="btn btn--primary btn--full" data-add="${p.id}">
-        Add to cart
-      </button>
+      <div class="muted small" style="margin-top:10px">
+        Delivery: AP & Telangana only • COD not available
+      </div>
     `;
 
-    grid.appendChild(card);
-  });
+    const sel = el.querySelector(".variantSel");
+    const qty = el.querySelector(".qty");
+    const btn = el.querySelector(".addBtn");
 
-  grid.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-add]");
-    if (!btn) return;
-    const productId = btn.getAttribute("data-add");
-    addToCart(productId);
+    btn.addEventListener("click", () => {
+      const idx = Number(sel.value);
+      const q = Math.max(1, Number(qty.value || 1));
+      const v = p.variants[idx];
+      addToCart(p, v, q);
+    });
+
+    grid.appendChild(el);
   });
 }
 
-/* =========================
-   CART
-========================= */
-
-function addToCart(productId) {
-  const product = PRODUCTS.find((x) => x.id === productId);
-  if (!product) return;
-
-  const sel = $(`sel_${productId}`);
-  const qtyInput = $(`qty_${productId}`);
-
-  const vIndex = Number(sel.value);
-  const variant = product.variants[vIndex];
-
-  const qty = Math.max(1, Number(qtyInput.value || 1));
-  const key = `${productId}_${variant.label}`;
-
-  const existing = cart.find((x) => x.key === key);
-  if (existing) existing.qty += qty;
-  else {
+function addToCart(product, variant, qty){
+  const key = `${product.id}__${variant.label}`;
+  const existing = cart.find(x => `${x.productId}__${x.variantLabel}` === key);
+  if(existing){
+    existing.qty += qty;
+  } else {
     cart.push({
-      key,
-      productId,
-      productName: product.name,
+      productId: product.id,
+      name: product.name,
       variantLabel: variant.label,
-      unitPrice: variant.price,
+      price: variant.price,
       qty
     });
   }
-
   updateCartUI();
   openCart();
 }
 
-function changeQty(key, delta) {
-  const item = cart.find((x) => x.key === key);
-  if (!item) return;
-  item.qty += delta;
-  if (item.qty <= 0) cart = cart.filter((x) => x.key !== key);
+function removeItem(index){
+  cart.splice(index,1);
   updateCartUI();
 }
 
-function removeItem(key) {
-  cart = cart.filter((x) => x.key !== key);
+function clearCart(){
+  cart.length = 0;
   updateCartUI();
 }
 
-function getTotals() {
-  const subtotal = cart.reduce((sum, x) => sum + x.unitPrice * x.qty, 0);
-  const total = subtotal; // keep simple: no delivery calc now
-  const itemsCount = cart.reduce((sum, x) => sum + x.qty, 0);
-  return { subtotal, total, itemsCount };
-}
+function updateCartUI(){
+  const {items,total} = cartTotals();
+  $("cartCount").textContent = items;
+  $("cartSub").textContent = `${items} item${items===1?"":"s"}`;
+  $("cartTotal").textContent = formatINR(total);
+  $("summaryItems").textContent = items;
+  $("summaryTotal").textContent = formatINR(total);
 
-function updateCartUI() {
-  const { subtotal, total, itemsCount } = getTotals();
+  $("checkoutBtn").disabled = items === 0;
+  $("clearCartBtn").disabled = items === 0;
 
-  $("cartCount").textContent = String(itemsCount);
-  $("cartSub").textContent = `${itemsCount} item${itemsCount === 1 ? "" : "s"}`;
-  $("subtotal").textContent = formatINR(subtotal);
-  $("total").textContent = formatINR(total);
+  const list = $("cartItems");
+  list.innerHTML = "";
 
-  const wrap = $("cartItems");
-  wrap.innerHTML = "";
-
-  if (cart.length === 0) {
-    wrap.innerHTML = `<div class="muted">Your cart is empty.</div>`;
+  if(items === 0){
+    list.innerHTML = `<div class="muted">Your cart is empty.</div>`;
     return;
   }
 
-  cart.forEach((x) => {
-    const div = document.createElement("div");
-    div.className = "cartItem";
-    div.innerHTML = `
-      <div class="cartItem__top">
+  cart.forEach((c, idx) => {
+    const item = document.createElement("div");
+    item.className = "cartItem";
+    item.innerHTML = `
+      <div class="cartItemTop">
         <div>
-          <div class="cartItem__name">${x.productName}</div>
-          <div class="cartItem__meta">${x.variantLabel} • ${formatINR(x.unitPrice)} each</div>
+          <div class="cartItemName">${c.name}</div>
+          <div class="cartItemMeta">${c.variantLabel} • ${formatINR(c.price)} each</div>
         </div>
-        <div><strong>${formatINR(x.unitPrice * x.qty)}</strong></div>
+        <div class="cartItemName">${formatINR(c.price * c.qty)}</div>
       </div>
 
-      <div class="cartItem__actions">
-        <button class="qtyBtn" data-dec="${x.key}">−</button>
-        <button class="qtyBtn" data-inc="${x.key}">+</button>
-        <button class="qtyBtn removeBtn" data-rm="${x.key}">Remove</button>
+      <div class="cartItemActions">
+        <div class="muted small">Qty: ${c.qty}</div>
+        <button class="linkBtn">Remove</button>
       </div>
     `;
-    wrap.appendChild(div);
+    item.querySelector(".linkBtn").addEventListener("click", () => removeItem(idx));
+    list.appendChild(item);
   });
 }
 
-/* =========================
-   DRAWER OPEN/CLOSE
-========================= */
-
-function openCart() {
-  $("drawer").classList.add("open");
-  $("drawer").setAttribute("aria-hidden", "false");
+function openCart(){
+  $("cartDrawer").classList.add("show");
+  $("cartDrawer").setAttribute("aria-hidden","false");
+}
+function closeCart(){
+  $("cartDrawer").classList.remove("show");
+  $("cartDrawer").setAttribute("aria-hidden","true");
 }
 
-function closeCart() {
-  $("drawer").classList.remove("open");
-  $("drawer").setAttribute("aria-hidden", "true");
+function openCheckout(){
+  $("checkoutModal").classList.add("show");
+  $("checkoutModal").setAttribute("aria-hidden","false");
+  $("placeOrderMsg").textContent = "";
+}
+function closeCheckout(){
+  $("checkoutModal").classList.remove("show");
+  $("checkoutModal").setAttribute("aria-hidden","true");
 }
 
-/* =========================
-   PAYMENT UI
-========================= */
-
-function syncPaymentUI() {
-  const method = $("payMethod").value;
-  $("upiBox").classList.toggle("hidden", method !== "UPI");
-  $("cardBox").classList.toggle("hidden", method !== "CARD");
+function openSuccess(orderId){
+  $("orderIdText").textContent = orderId;
+  $("successModal").classList.add("show");
+  $("successModal").setAttribute("aria-hidden","false");
+}
+function closeSuccess(){
+  $("successModal").classList.remove("show");
+  $("successModal").setAttribute("aria-hidden","true");
 }
 
-/* =========================
-   VALIDATION + ORDER
-========================= */
-
-function makeOrderId() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  const rand = Math.floor(1000 + Math.random() * 9000);
-  return `SS-${y}${m}${day}-${rand}`;
+function makeOrderId(){
+  const n = Math.floor(1000 + Math.random()*9000);
+  return `SS-${n}`;
 }
 
-function showError(msg) {
-  $("errorBox").textContent = msg || "";
+function fileToDataUrl(file){
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
 }
 
-function getCheckoutData() {
-  return {
-    name: $("custName").value.trim(),
-    phone: $("custPhone").value.trim(),
-    state: $("custState").value,
-    address: $("custAddress").value.trim(),
-    payMethod: $("payMethod").value,
-    payerUpi: $("payerUpi").value.trim(),
-    cardName: $("cardName").value.trim(),
-    cardLast4: $("cardLast4").value.trim()
-  };
-}
+async function placeOrder(){
+  const {items,total} = cartTotals();
+  if(items === 0) return;
 
-function validateCheckout() {
-  if (cart.length === 0) return "Cart is empty. Add at least one product.";
-  const d = getCheckoutData();
+  const form = $("checkoutForm");
+  const formData = new FormData(form);
 
-  if (!d.name) return "Please enter your full name.";
-  if (!d.phone || d.phone.length < 8) return "Please enter a valid phone number.";
-  if (!d.state) return "Please select delivery state (AP or TG).";
-  if (!d.address || d.address.length < 10) return "Please enter your full address.";
+  const name = (formData.get("name")||"").toString().trim();
+  const phone = (formData.get("phone")||"").toString().trim();
+  const address = (formData.get("address")||"").toString().trim();
+  const city = (formData.get("city")||"").toString().trim();
+  const state = (formData.get("state")||"").toString().trim();
+  const pincode = (formData.get("pincode")||"").toString().trim();
 
-  if (d.payMethod === "CARD") {
-    if (!d.cardName) return "Enter cardholder name (demo).";
-    if (!/^\d{4}$/.test(d.cardLast4)) return "Enter last 4 digits (demo).";
+  if(!name || !phone || !address || !city || !state || !pincode){
+    $("placeOrderMsg").textContent = "Please fill all delivery details.";
+    return;
   }
 
-  return "";
-}
+  const proofFile = $("paymentProof").files?.[0];
+  if(!proofFile){
+    $("placeOrderMsg").textContent = "Please upload your UPI payment screenshot (required).";
+    return;
+  }
 
-function buildUpiLink(orderId, totalAmount) {
-  // UPI deep link (works best on mobile)
-  const params = new URLSearchParams({
-    pa: PAYEE_UPI,
-    pn: "Sai Spices",
-    am: totalAmount.toFixed(2),
-    cu: "INR",
-    tn: `Sai Spices Order ${orderId}`
-  });
-  return `upi://pay?${params.toString()}`;
-}
+  if(WEB_APP_URL.includes("PASTE_")){
+    $("placeOrderMsg").textContent = "Admin setup required: add your Google Apps Script Web App URL in script.js";
+    return;
+  }
 
-async function sendToSheet(order) {
-  if (!SHEETS_WEBAPP_URL) return;
+  $("placeOrderBtn").disabled = true;
+  $("placeOrderMsg").textContent = "Placing order...";
 
-  // Simple POST as JSON
-  try {
-    await fetch(SHEETS_WEBAPP_URL, {
+  const orderId = makeOrderId();
+  const proofDataUrl = await fileToDataUrl(proofFile);
+
+  const payload = {
+    orderId,
+    createdAt: new Date().toISOString(),
+    customer: { name, phone, address, city, state, pincode },
+    delivery: "AP & Telangana only",
+    payment: { method: "UPI (Manual)", upiId: UPI_ID },
+    cart,
+    total,
+    screenshot: {
+      filename: proofFile.name,
+      mimeType: proofFile.type || "image/png",
+      dataUrl: proofDataUrl
+    }
+  };
+
+  try{
+    const res = await fetch(WEB_APP_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(order)
+      body: JSON.stringify(payload)
     });
-  } catch (e) {
-    // Don’t block success if sheet fails
-    console.warn("Sheet save failed:", e);
+
+    const txt = await res.text();
+    if(!res.ok){
+      throw new Error(txt || "Server error");
+    }
+
+    closeCheckout();
+    closeCart();
+    openSuccess(orderId);
+    clearCart();
+    form.reset();
+    $("paymentProof").value = "";
+    $("proofHint").textContent = "No file selected";
+  }catch(err){
+    $("placeOrderMsg").textContent = "Failed to place order. Please try again. (" + err.message + ")";
+  }finally{
+    $("placeOrderBtn").disabled = false;
   }
 }
 
-function showSuccess(orderId) {
-  const { total } = getTotals();
-  $("orderIdText").textContent = orderId;
+function init(){
+  $("year").textContent = new Date().getFullYear();
+  $("upiIdText").textContent = UPI_ID;
 
-  const lines = cart
-    .map((x) => `${x.productName} (${x.variantLabel}) x${x.qty}`)
-    .join(" • ");
-
-  $("orderSummaryText").textContent = `Total: ${formatINR(total)} • ${lines}`;
-
-  $("successModal").classList.remove("hidden");
-}
-
-function resetAll() {
-  cart = [];
+  renderProducts();
   updateCartUI();
-  closeCart();
-  showError("");
-  $("custName").value = "";
-  $("custPhone").value = "";
-  $("custState").value = "";
-  $("custAddress").value = "";
-  $("payerUpi").value = "";
-  $("cardName").value = "";
-  $("cardLast4").value = "";
-  $("payMethod").value = "UPI";
-  syncPaymentUI();
-}
 
-/* =========================
-   EVENTS
-========================= */
-
-function bindEvents() {
   $("openCartBtn").addEventListener("click", openCart);
+  $("footerCartOpen").addEventListener("click", (e)=>{ e.preventDefault(); openCart(); });
+
   $("closeCartBtn").addEventListener("click", closeCart);
   $("drawerBackdrop").addEventListener("click", closeCart);
 
-  $("cartItems").addEventListener("click", (e) => {
-    const inc = e.target.closest("[data-inc]");
-    const dec = e.target.closest("[data-dec]");
-    const rm = e.target.closest("[data-rm]");
+  $("checkoutBtn").addEventListener("click", openCheckout);
+  $("closeCheckoutBtn").addEventListener("click", closeCheckout);
+  $("checkoutBackdrop").addEventListener("click", closeCheckout);
 
-    if (inc) return changeQty(inc.getAttribute("data-inc"), +1);
-    if (dec) return changeQty(dec.getAttribute("data-dec"), -1);
-    if (rm) return removeItem(rm.getAttribute("data-rm"));
+  $("clearCartBtn").addEventListener("click", clearCart);
+
+  $("placeOrderBtn").addEventListener("click", placeOrder);
+
+  $("paymentProof").addEventListener("change", (e)=>{
+    const f = e.target.files?.[0];
+    $("proofHint").textContent = f ? `Selected: ${f.name}` : "No file selected";
   });
 
-  $("payMethod").addEventListener("change", syncPaymentUI);
-
-  $("placeOrderBtn").addEventListener("click", async () => {
-    showError("");
-    const err = validateCheckout();
-    if (err) {
-      showError(err);
-      return;
-    }
-
-    const orderId = makeOrderId();
-    const { subtotal, total } = getTotals();
-    const d = getCheckoutData();
-
-    const order = {
-      orderId,
-      createdAt: new Date().toISOString(),
-      customer: {
-        name: d.name,
-        phone: d.phone,
-        state: d.state,
-        address: d.address
-      },
-      payment: {
-        method: d.payMethod,
-        payerUpi: d.payerUpi || "",
-        cardDemo: d.payMethod === "CARD" ? { cardName: d.cardName, last4: d.cardLast4 } : null
-      },
-      items: cart.map((x) => ({
-        name: x.productName,
-        variant: x.variantLabel,
-        unitPrice: x.unitPrice,
-        qty: x.qty,
-        lineTotal: x.unitPrice * x.qty
-      })),
-      subtotal,
-      total
-    };
-
-    // If UPI selected, open UPI link (mobile best). Then still place order.
-    if (d.payMethod === "UPI") {
-      const link = buildUpiLink(orderId, total);
-      window.open(link, "_blank");
-    }
-
-    await sendToSheet(order);
-    showSuccess(orderId);
-  });
-
-  // Success modal events
-  $("successBackdrop").addEventListener("click", () => {
-    $("successModal").classList.add("hidden");
-  });
-  $("closeSuccessBtn").addEventListener("click", () => {
-    $("successModal").classList.add("hidden");
-  });
-  $("newOrderBtn").addEventListener("click", () => {
-    $("successModal").classList.add("hidden");
-    resetAll();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  });
+  $("closeSuccessBtn").addEventListener("click", closeSuccess);
+  $("successBackdrop").addEventListener("click", closeSuccess);
+  $("newOrderBtn").addEventListener("click", () => { closeSuccess(); });
 }
 
-/* =========================
-   INIT
-========================= */
-renderProducts();
-updateCartUI();
-bindEvents();
-syncPaymentUI();
+document.addEventListener("DOMContentLoaded", init);
