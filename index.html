@@ -3,247 +3,177 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sai Spices — Fresh Homemade Spices</title>
-  <meta name="description" content="Sai Spices — Fresh homemade spice powders. Order online (AP & TG delivery).">
+  <title>Sai Spices — Order Online</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-
-  <!-- Top Bar -->
+  <!-- Header -->
   <header class="top">
     <div class="container nav">
-      <a class="brand" href="#top" aria-label="Sai Spices Home">
-        <img class="brand__logo" src="logo.jpg" alt="Sai Spices logo" />
-        <div class="brand__text">
+      <div class="brand">
+        <!-- Put your logo image in repo as: logo.png (or change filename here) -->
+        <img class="logo" src="logo.png" alt="Sai Spices logo" />
+        <div>
           <div class="brand__name">Sai Spices</div>
-          <div class="brand__sub">Homemade • Fresh • AP & TG delivery</div>
+          <div class="brand__sub">Fresh, homemade spice powders • Delivery: AP & TG only</div>
         </div>
-      </a>
-
-      <nav class="navlinks">
-        <a href="#shop">Shop</a>
-        <a href="#how">How it works</a>
-        <a href="#contact">Contact</a>
-      </nav>
-
-      <div class="actions">
-        <button class="btn btn--ghost" id="openCartBtn" type="button" aria-label="Open cart">
-          🛒 Cart <span class="cartCount" id="cartCount">0</span>
-        </button>
-        <a class="btn btn--primary" href="#shop">Shop now</a>
       </div>
+
+      <button class="btn btn--primary" id="openCartBtn">
+        Cart <span class="pill" id="cartCount">0</span>
+      </button>
     </div>
   </header>
 
-  <!-- Hero -->
-  <main id="top">
+  <!-- Main -->
+  <main class="container">
     <section class="hero">
-      <div class="container hero__grid">
-        <div class="hero__copy">
-          <div class="pill">Fresh spice powders • Made in India • Delivery: AP & TG</div>
-          <h1>Homemade spices with real flavour.</h1>
-          <p class="lead">
-            Buy Red Chilli Powder, Turmeric Powder, Jeera Powder, and Garam Masala — freshly packed.
-            Simple ordering, fast response.
-          </p>
-
-          <div class="hero__buttons">
-            <a class="btn btn--primary" href="#shop">View products</a>
-            <a class="btn btn--ghost" href="#contact">Contact us</a>
-          </div>
-
-          <div class="trust">
-            <div class="trust__item">✅ Clean packing</div>
-            <div class="trust__item">✅ Homemade blends</div>
-            <div class="trust__item">✅ AP & TG delivery</div>
-          </div>
-        </div>
-
-        <aside class="card">
-          <div class="card__top">
-            <div class="badge">Quick order</div>
-            <div class="mini">Orders go to our team</div>
-          </div>
-
-          <div class="miniLine">🧾 Add items to cart</div>
-          <div class="miniLine">📝 Fill checkout details</div>
-          <div class="miniLine">✅ Place order (saved in Sheet)</div>
-
-          <div class="divider"></div>
-
-          <div class="note">
-            <strong>Delivery area:</strong> Andhra Pradesh & Telangana only (for now).
-          </div>
-
-          <button class="btn btn--primary btn--full" type="button" id="heroOpenCart">
-            Open cart
-          </button>
-
-          <p class="small muted" style="margin:10px 0 0;">
-            This is a simple ordering website. We’ll confirm your order by phone.
-          </p>
-        </aside>
-      </div>
+      <h1>Order spices in minutes.</h1>
+      <p class="muted">
+        Choose a product → select size → add to cart → checkout.
+      </p>
     </section>
 
-    <!-- Shop -->
-    <section class="section" id="shop">
-      <div class="container">
-        <div class="sectionHead">
-          <h2>Shop spices</h2>
-          <p class="muted">Choose size → Add to cart → Checkout. Prices in ₹.</p>
-        </div>
-
-        <div class="grid products" id="productGrid">
-          <!-- Filled by script.js -->
-        </div>
-      </div>
-    </section>
-
-    <!-- How it works -->
-    <section class="section alt" id="how">
-      <div class="container">
-        <div class="sectionHead">
-          <h2>How it works</h2>
-          <p class="muted">Simple steps — no stress.</p>
-        </div>
-
-        <div class="grid how">
-          <div class="box">
-            <div class="box__title">1) Choose products</div>
-            <p class="muted">Select sizes and add items to your cart.</p>
-          </div>
-          <div class="box">
-            <div class="box__title">2) Checkout</div>
-            <p class="muted">Enter your delivery address (AP/TG).</p>
-          </div>
-          <div class="box">
-            <div class="box__title">3) We confirm</div>
-            <p class="muted">We confirm availability and delivery by phone.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Contact -->
-    <section class="section" id="contact">
-      <div class="container">
-        <div class="sectionHead">
-          <h2>Contact</h2>
-          <p class="muted">For bulk orders and questions.</p>
-        </div>
-
-        <div class="contactCard">
-          <div>
-            <div class="contactTitle">Sai Spices</div>
-            <div class="muted">Homemade spice powders</div>
-            <div class="muted" style="margin-top:10px;"><strong>Delivery:</strong> AP & TG only</div>
-          </div>
-
-          <div class="contactBtns">
-            <!-- Replace phone number/email if you want -->
-            <a class="btn btn--ghost" href="tel:+919999999999">📞 Call</a>
-            <a class="btn btn--primary" href="#shop">Shop now</a>
-          </div>
-        </div>
-      </div>
+    <!-- Products -->
+    <section class="section">
+      <h2>Products</h2>
+      <div class="grid" id="productsGrid"></div>
     </section>
   </main>
 
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="container footer__grid">
-      <div class="footerBrand">
-        <img class="footerLogo" src="logo.jpg" alt="Sai Spices logo" />
+  <!-- Cart Drawer -->
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer__backdrop" id="drawerBackdrop"></div>
+
+    <div class="drawer__panel" role="dialog" aria-modal="true" aria-label="Shopping cart">
+      <div class="drawer__head">
         <div>
-          <div class="footerName">Sai Spices</div>
-          <div class="muted small">Fresh homemade spices • AP & TG delivery</div>
+          <div class="drawer__title">Your Cart</div>
+          <div class="drawer__sub muted" id="cartSub">0 items</div>
         </div>
-      </div>
-
-      <div class="footerLinks">
-        <a href="#shop">Shop</a>
-        <a href="#how">How it works</a>
-        <a href="#contact">Contact</a>
-      </div>
-
-      <div class="footerCopy">
-        <div class="small muted">© <span id="year"></span> Sai Spices</div>
-        <div class="small muted">Made with Thrive Group Solutions</div>
-      </div>
-    </div>
-  </footer>
-
-  <!-- CART DRAWER -->
-  <aside class="cart" id="cartDrawer" aria-label="Shopping cart" aria-hidden="true">
-    <div class="cart__overlay" id="cartOverlay"></div>
-
-    <div class="cart__panel">
-      <div class="cart__head">
-        <div class="cart__title">Your cart</div>
         <button class="iconBtn" id="closeCartBtn" aria-label="Close cart">✕</button>
       </div>
 
-      <div class="cart__items" id="cartItems">
-        <!-- items here -->
-      </div>
+      <div class="drawer__body">
+        <div id="cartItems" class="cartItems"></div>
 
-      <div class="cart__summary">
-        <div class="row">
-          <span class="muted">Subtotal</span>
-          <strong id="cartSubtotal">₹0</strong>
+        <div class="summary">
+          <div class="row">
+            <span class="muted">Subtotal</span>
+            <strong id="subtotal">₹0</strong>
+          </div>
+          <div class="row">
+            <span class="muted">Delivery</span>
+            <strong class="muted">Calculated on confirmation</strong>
+          </div>
+          <div class="row row--total">
+            <span>Total</span>
+            <strong id="total">₹0</strong>
+          </div>
         </div>
-        <div class="row small muted">Delivery: AP & TG only (we confirm by phone).</div>
-      </div>
 
-      <div class="checkout">
-        <h3 class="checkoutTitle">Checkout</h3>
+        <hr class="sep"/>
 
-        <form id="checkoutForm" class="form">
-          <div class="twoCol">
-            <label>Full name
-              <input name="name" required placeholder="Your name" />
+        <!-- Checkout -->
+        <div class="checkout">
+          <h3>Checkout</h3>
+
+          <div class="formGrid">
+            <label>
+              Full name
+              <input id="custName" type="text" placeholder="Your name" />
             </label>
-            <label>Phone
-              <input name="phone" required placeholder="10-digit mobile" />
+
+            <label>
+              Phone (WhatsApp)
+              <input id="custPhone" type="tel" placeholder="e.g. 98xxxxxx" />
+            </label>
+
+            <label>
+              State (delivery only AP/TG)
+              <select id="custState">
+                <option value="">Select</option>
+                <option value="AP">Andhra Pradesh (AP)</option>
+                <option value="TG">Telangana (TG)</option>
+              </select>
+            </label>
+
+            <label class="full">
+              Full address
+              <textarea id="custAddress" rows="3" placeholder="House no, street, area, city, pincode"></textarea>
             </label>
           </div>
 
-          <label>Email (optional)
-            <input name="email" type="email" placeholder="you@email.com" />
-          </label>
+          <div class="payBox">
+            <div class="payRow">
+              <div>
+                <strong>Payment method</strong>
+                <div class="muted small">Card is demo. UPI uses a UPI payment link.</div>
+              </div>
+              <select id="payMethod">
+                <option value="UPI">UPI</option>
+                <option value="CARD">Card (demo)</option>
+              </select>
+            </div>
 
-          <label>Full address (AP/TG only)
-            <input name="address" required placeholder="House/Street, Area" />
-          </label>
+            <!-- UPI -->
+            <div id="upiBox" class="methodBox">
+              <label>
+                Your UPI ID (optional)
+                <input id="payerUpi" type="text" placeholder="name@bank (optional)" />
+              </label>
+              <div class="muted small">
+                When you click “Pay & Place Order”, it will open a UPI link (works on mobile).
+              </div>
+              <div class="muted small">
+                Admin: set your UPI ID inside <code>script.js</code> (PAYEE_UPI).
+              </div>
+            </div>
 
-          <div class="twoCol">
-            <label>City
-              <input name="city" required placeholder="City" />
-            </label>
-            <label>Pincode
-              <input name="pincode" required placeholder="Pincode" />
-            </label>
+            <!-- Card demo -->
+            <div id="cardBox" class="methodBox hidden">
+              <div class="formGrid">
+                <label>
+                  Cardholder name
+                  <input id="cardName" type="text" placeholder="Name on card" />
+                </label>
+                <label>
+                  Last 4 digits (demo)
+                  <input id="cardLast4" type="text" maxlength="4" placeholder="1234" />
+                </label>
+              </div>
+              <div class="muted small">
+                This is only a demo flow. Real card payments need a gateway (Stripe/Razorpay).
+              </div>
+            </div>
           </div>
 
-          <label>Notes (optional)
-            <input name="notes" placeholder="Any instructions (optional)" />
-          </label>
-
-          <p class="small muted" style="margin:6px 0 0;">
-            By placing order, you confirm delivery is within Andhra Pradesh or Telangana.
-          </p>
-
-          <button class="btn btn--primary btn--full" type="submit" id="placeOrderBtn">
-            Place order
+          <button class="btn btn--primary btn--full" id="placeOrderBtn">
+            Pay & Place Order
           </button>
 
-          <p class="success" id="successMsg">✅ Order sent successfully! We will contact you soon.</p>
-          <p class="error" id="errorMsg">❌ Something went wrong. Please try again.</p>
-        </form>
+          <p class="error" id="errorBox"></p>
+        </div>
       </div>
     </div>
   </aside>
+
+  <!-- Success Screen -->
+  <div class="modal hidden" id="successModal" role="dialog" aria-modal="true" aria-label="Order success">
+    <div class="modal__backdrop" id="successBackdrop"></div>
+    <div class="modal__card">
+      <div class="tick">✅</div>
+      <h2>Order placed successfully!</h2>
+      <p class="muted">Your Order ID:</p>
+      <div class="orderId" id="orderIdText">SS-0000</div>
+      <div class="muted small" id="orderSummaryText"></div>
+
+      <div class="modal__actions">
+        <button class="btn" id="newOrderBtn">Place another order</button>
+        <button class="btn btn--primary" id="closeSuccessBtn">Close</button>
+      </div>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
