@@ -1,76 +1,34 @@
 /***********************
- * 1) CONFIG (EDIT HERE)
+ * CONFIG
  ***********************/
-const BRAND = {
-  upiId: "yourupi@upi", // change later (example: saispices@upi)
-};
-
-// ✅ Paste your Apps Script Web App URL here
 const SHEET_API_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
 
-// Products (update prices here)
+const ALLOWED_STATES = new Set(["Andhra Pradesh", "Telangana"]);
+const DELIVERY_FEE = 0;
+
 const PRODUCTS = [
   {
     id: "chilli",
     name: "Red Chilli Powder",
     desc: "Freshly ground, hygienically packed. Strong flavour & rich colour.",
-    tag: "Best seller",
-    artClass: "art--chilli",
+    artClass: "pArt--chilli",
     options: [
-      { size: 50,  price: 0 },
-      { size: 100, price: 0 },
-      { size: 250, price: 0 },
-    ],
-  },
-  {
-    id: "turmeric",
-    name: "Turmeric Powder",
-    desc: "Pure turmeric powder for daily cooking. Fresh aroma and natural colour.",
-    tag: "Daily essential",
-    artClass: "art--turmeric",
-    options: [
-      { size: 50,  price: 0 },
-      { size: 100, price: 0 },
+      { sizeLabel: "100g", grams: 100, price: 65 },
+      { sizeLabel: "200g", grams: 200, price: 119 },
+      { sizeLabel: "500g", grams: 500, price: 199 },
+      { sizeLabel: "1kg",  grams: 1000, price: 289 },
     ],
   },
 ];
 
-// Zones by state (edit anytime)
-const ZONE_A = new Set(["Andhra Pradesh","Telangana","Karnataka","Tamil Nadu","Kerala"]);
-const ZONE_B = new Set(["Maharashtra","Goa","Gujarat","Madhya Pradesh","Chhattisgarh","Odisha"]);
-
-// Shipping table (zone -> bracket)
-const SHIPPING = {
-  A: { w250: 49, w500: 69, w1000: 99 },
-  B: { w250: 59, w500: 79, w1000: 119 },
-  C: { w250: 69, w500: 99, w1000: 149 }
-};
-
-
 /***********************
- * 2) UTILITIES
+ * UTILITIES
  ***********************/
 const ₹ = (n) => `₹${Number(n || 0).toFixed(0)}`;
 
 function makeOrderId(){
   return "SS" + Date.now().toString().slice(-8);
 }
-
-function getZone(state){
-  if (!state) return "C";
-  if (ZONE_A.has(state)) return "A";
-  if (ZONE_B.has(state)) return "B";
-  return "C";
-}
-
-function calcShipping(totalWeightGrams, state){
-  const zone = getZone(state);
-  const table = SHIPPING[zone];
-  if (totalWeightGrams <= 250) return table.w250;
-  if (totalWeightGrams <= 500) return table.w500;
-  return table.w1000; // up to 1kg
-}
-
 function loadCart(){
   try { return JSON.parse(localStorage.getItem("saip_cart") || "[]"); }
   catch { return []; }
@@ -79,15 +37,13 @@ function saveCart(cart){
   localStorage.setItem("saip_cart", JSON.stringify(cart));
 }
 function cartCount(cart){ return cart.reduce((sum, i) => sum + i.qty, 0); }
-function cartWeight(cart){ return cart.reduce((sum, i) => sum + (i.size * i.qty), 0); }
 function cartSubtotal(cart){ return cart.reduce((sum, i) => sum + (i.price * i.qty), 0); }
-
+function cartWeight(cart){ return cart.reduce((sum, i) => sum + (i.grams * i.qty), 0); }
 
 /***********************
- * 3) RENDER PRODUCTS
+ * RENDER PRODUCT
  ***********************/
 const productGrid = document.getElementById("productGrid");
-const upiIdText = document.getElementById("upiIdText");
 
 function renderProducts(){
   productGrid.innerHTML = "";
@@ -98,32 +54,30 @@ function renderProducts(){
 
     const optionHtml = p.options.map((o, idx) => {
       const selected = idx === 0 ? "selected" : "";
-      return `<option ${selected} value="${o.size}" data-price="${o.price}">${o.size}g — ${₹(o.price)}</option>`;
+      return `<option ${selected} value="${o.grams}" data-price="${o.price}" data-label="${o.sizeLabel}">
+        ${o.sizeLabel} — ${₹(o.price)}
+      </option>`;
     }).join("");
 
     card.innerHTML = `
-      <div class="pTop">
-        <div>
-          <div class="pName">${p.name}</div>
-          <div class="muted small">${p.tag}</div>
+      <div class="pArt ${p.artClass}"></div>
+
+      <div>
+        <div class="pName">${p.name}</div>
+        <p class="pDesc">${p.desc}</p>
+
+        <div class="pControls">
+          <select class="select" data-product="${p.id}">
+            ${optionHtml}
+          </select>
+
+          <input class="qty" type="number" min="1" value="1" />
+
+          <button class="btn btn--primary" type="button" data-add="${p.id}">Add to cart</button>
         </div>
-        <div class="pBadge">${p.tag}</div>
-      </div>
 
-      <div class="art ${p.artClass}"></div>
-
-      <p class="pDesc">${p.desc}</p>
-
-      <div class="pControls">
-        <select class="select" data-product="${p.id}">
-          ${optionHtml}
-        </select>
-        <input class="qty" type="number" min="1" value="1" />
-      </div>
-
-      <div class="pBottom">
         <div class="price" data-price-label>${₹(p.options[0].price)}</div>
-        <button class="btn btn--primary" type="button" data-add="${p.id}">Add to cart</button>
+        <div class="muted small">Free delivery only in Andhra Pradesh & Telangana.</div>
       </div>
     `;
 
@@ -135,10 +89,13 @@ function renderProducts(){
     });
 
     card.querySelector(`[data-add="${p.id}"]`).addEventListener("click", () => {
-      const size = Number(select.value);
-      const price = Number(select.selectedOptions[0].getAttribute("data-price"));
+      const opt = select.selectedOptions[0];
+      const grams = Number(select.value);
+      const sizeLabel = opt.getAttribute("data-label");
+      const price = Number(opt.getAttribute("data-price"));
       const qty = Math.max(1, Number(card.querySelector(".qty").value || 1));
-      addToCart(p.id, p.name, size, price, qty);
+
+      addToCart(p.id, p.name, sizeLabel, grams, price, qty);
       openCart();
     });
 
@@ -146,9 +103,8 @@ function renderProducts(){
   });
 }
 
-
 /***********************
- * 4) CART DRAWER
+ * CART
  ***********************/
 const drawer = document.getElementById("cartDrawer");
 const drawerBackdrop = document.getElementById("drawerBackdrop");
@@ -195,13 +151,13 @@ clearCartBtn?.addEventListener("click", () => {
   updateCheckoutSummary();
 });
 
-function addToCart(id, name, size, price, qty){
+function addToCart(id, name, sizeLabel, grams, price, qty){
   const cart = loadCart();
-  const key = `${id}_${size}`;
+  const key = `${id}_${grams}`;
   const existing = cart.find(i => i.key === key);
 
   if (existing) existing.qty += qty;
-  else cart.push({ key, id, name, size, price, qty });
+  else cart.push({ key, id, name, sizeLabel, grams, price, qty });
 
   saveCart(cart);
   updateCartBadges();
@@ -237,13 +193,13 @@ function renderCart(){
   cartMetaEl.textContent = `${cartCount(cart)} items`;
 
   if (cart.length === 0){
-    cartItemsEl.innerHTML = `<p class="muted small">Your cart is empty. Add products to continue.</p>`;
+    cartItemsEl.innerHTML = `<p class="muted small">Your cart is empty. Add packs to continue.</p>`;
   } else {
     cartItemsEl.innerHTML = cart.map(i => `
       <div class="cartItem">
         <div>
           <div class="cartItem__name">${i.name}</div>
-          <div class="cartItem__meta">${i.size}g • ${₹(i.price)} each</div>
+          <div class="cartItem__meta">${i.sizeLabel} • ${₹(i.price)} each</div>
           <div class="cartItem__meta"><b>${₹(i.price * i.qty)}</b></div>
         </div>
         <div class="cartItem__actions">
@@ -267,15 +223,13 @@ function renderCart(){
   }
 
   const subtotal = cartSubtotal(cart);
-  const estShip = calcShipping(cartWeight(cart), document.getElementById("state")?.value || "");
   cartSubtotalEl.textContent = ₹(subtotal);
-  cartShipEl.textContent = ₹(cart.length ? estShip : 0);
-  cartTotalEl.textContent = ₹(subtotal + (cart.length ? estShip : 0));
+  cartShipEl.textContent = ₹(cart.length ? DELIVERY_FEE : 0);
+  cartTotalEl.textContent = ₹(subtotal + (cart.length ? DELIVERY_FEE : 0));
 }
 
-
 /***********************
- * 5) CHECKOUT
+ * CHECKOUT
  ***********************/
 const sumItems = document.getElementById("sumItems");
 const sumSubtotal = document.getElementById("sumSubtotal");
@@ -283,11 +237,16 @@ const sumShipping = document.getElementById("sumShipping");
 const sumTotal = document.getElementById("sumTotal");
 
 const stateEl = document.getElementById("state");
-const orderForm = document.getElementById("orderForm");
+const stateWarn = document.getElementById("stateWarn");
+const placeOrderBtn = document.getElementById("placeOrderBtn");
 
+const orderForm = document.getElementById("orderForm");
 const successBox = document.getElementById("successBox");
 const errorBox = document.getElementById("errorBox");
 const orderIdOut = document.getElementById("orderIdOut");
+
+const upiField = document.getElementById("upiField");
+const cardField = document.getElementById("cardField");
 
 function updateCartBadges(){
   const cart = loadCart();
@@ -296,18 +255,43 @@ function updateCartBadges(){
   cartCountEl2.textContent = c;
 }
 
+function deliveryAllowed(){
+  const state = stateEl?.value || "";
+  return ALLOWED_STATES.has(state);
+}
+
+function updateStateUI(){
+  const ok = deliveryAllowed();
+  const stateValue = stateEl?.value || "";
+
+  if (!stateValue){
+    stateWarn.style.display = "none";
+    placeOrderBtn.disabled = false;
+    return;
+  }
+
+  if (ok){
+    stateWarn.style.display = "none";
+    placeOrderBtn.disabled = false;
+  } else {
+    stateWarn.style.display = "block";
+    placeOrderBtn.disabled = true;
+  }
+}
+
 function updateCheckoutSummary(){
   const cart = loadCart();
   const items = cartCount(cart);
   const subtotal = cartSubtotal(cart);
-  const weight = cartWeight(cart);
-  const ship = cart.length ? calcShipping(weight, stateEl?.value || "") : 0;
-  const total = subtotal + ship;
+  const shipping = cart.length ? DELIVERY_FEE : 0;
+  const total = subtotal + shipping;
 
   sumItems.textContent = items;
   sumSubtotal.textContent = ₹(subtotal);
-  sumShipping.textContent = ₹(ship);
+  sumShipping.textContent = ₹(shipping);
   sumTotal.textContent = ₹(total);
+
+  updateStateUI();
 }
 
 stateEl?.addEventListener("change", () => {
@@ -315,10 +299,24 @@ stateEl?.addEventListener("change", () => {
   renderCart();
 });
 
-// post to Apps Script
+// payment toggle
+document.querySelectorAll('input[name="payMethod"]').forEach(r => {
+  r.addEventListener("change", () => {
+    const method = document.querySelector('input[name="payMethod"]:checked')?.value || "UPI";
+    if (method === "UPI"){
+      upiField.style.display = "grid";
+      cardField.style.display = "none";
+    } else {
+      upiField.style.display = "none";
+      cardField.style.display = "grid";
+    }
+  });
+});
+
+// post to sheet
 async function postToSheet(payload){
   if (!SHEET_API_URL || SHEET_API_URL.includes("PASTE_YOUR_WEB_APP_URL_HERE")){
-    alert("Please paste your Apps Script Web App URL in script.js (SHEET_API_URL).");
+    alert("Paste your Apps Script Web App URL in script.js (SHEET_API_URL).");
     return false;
   }
   try{
@@ -346,6 +344,11 @@ orderForm?.addEventListener("submit", async (e) => {
     return;
   }
 
+  if (!deliveryAllowed()){
+    alert("Currently delivery available only in Andhra Pradesh & Telangana.");
+    return;
+  }
+
   const firstName = document.getElementById("firstName").value.trim();
   const lastName  = document.getElementById("lastName").value.trim();
   const phone     = document.getElementById("phone").value.trim();
@@ -355,8 +358,11 @@ orderForm?.addEventListener("submit", async (e) => {
   const city      = document.getElementById("city").value.trim();
   const district  = document.getElementById("district").value.trim();
   const state     = document.getElementById("state").value.trim();
-  const upiRef    = document.getElementById("upiRef").value.trim();
   const notes     = document.getElementById("notes").value.trim();
+
+  const payMethod = document.querySelector('input[name="payMethod"]:checked')?.value || "UPI";
+  const upiRef = document.getElementById("upiRef").value.trim();
+  const cardRef = document.getElementById("cardRef").value.trim();
 
   if (!/^\d{10}$/.test(phone)){
     alert("Please enter a valid 10-digit phone number.");
@@ -369,25 +375,30 @@ orderForm?.addEventListener("submit", async (e) => {
 
   const orderId = makeOrderId();
   const subtotal = cartSubtotal(cart);
-  const weight = cartWeight(cart);
-  const shipping = calcShipping(weight, state);
+  const shipping = DELIVERY_FEE;
   const finalAmount = subtotal + shipping;
 
-  const itemsText = cart.map(i => `${i.name} ${i.size}g x${i.qty}`).join(" | ");
+  const itemsText = cart.map(i => `${i.name} ${i.sizeLabel} x${i.qty}`).join(" | ");
+
+  const paymentRef = (payMethod === "UPI") ? (upiRef || "") : (cardRef || "");
 
   const payload = {
     orderId,
     firstName,
     lastName,
     phone,
+
     product: itemsText,
-    size: "-",                 // keep for your Apps Script columns
     quantity: cartCount(cart),
-    weight,
+    weight: cartWeight(cart),
+
     subtotal,
     shipping,
     finalAmount,
-    upiRef,
+
+    paymentMethod: payMethod,
+    paymentRef,
+
     address1,
     area,
     city,
@@ -408,19 +419,17 @@ orderForm?.addEventListener("submit", async (e) => {
     orderIdOut.textContent = orderId;
     successBox.style.display = "block";
     orderForm.reset();
-    upiIdText.textContent = BRAND.upiId;
+    updateStateUI();
 
     successBox.scrollIntoView({ behavior: "smooth", block: "center" });
   } else {
-    alert("Order not saved. Please check Apps Script URL / internet and try again.");
+    alert("Order not saved. Check Apps Script URL and try again.");
   }
 });
 
-
 /***********************
- * 6) INIT
+ * INIT
  ***********************/
-upiIdText.textContent = BRAND.upiId;
 document.getElementById("year").textContent = new Date().getFullYear();
 
 renderProducts();
