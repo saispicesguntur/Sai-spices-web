@@ -1,11 +1,10 @@
 /**
- * IMPORTANT:
- * 1) Deploy the Google Apps Script (code below) as a Web App
- * 2) Paste the Web App URL here:
+ * 1) Deploy Google Apps Script as Web App
+ * 2) Paste Web App URL here
  */
 const WEB_APP_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
 
-// UPI ID placeholder (you will update later)
+// You will update later
 const UPI_ID = "UPI_ID_TO_ADD_LATER";
 
 const PRODUCTS = [
@@ -52,7 +51,6 @@ const PRODUCTS = [
 ];
 
 const cart = []; // {productId, name, variantLabel, price, qty}
-
 const $ = (id) => document.getElementById(id);
 
 function formatINR(n) {
@@ -64,6 +62,8 @@ function cartTotals() {
   const total = cart.reduce((a, c) => a + c.price * c.qty, 0);
   return { items, total };
 }
+
+/* ---------- UI render ---------- */
 
 function renderProducts() {
   const grid = $("productsGrid");
@@ -83,13 +83,13 @@ function renderProducts() {
     el.innerHTML = `
       <h3>${p.name}</h3>
       <p>${p.desc}</p>
+
       <div class="row">
-        <select class="variantSel" aria-label="Select size">
-          ${variantOptions}
-        </select>
+        <select class="variantSel" aria-label="Select size">${variantOptions}</select>
         <input class="qty" type="number" min="1" value="1" aria-label="Quantity" />
         <button class="btn btn--primary addBtn" type="button">Add to cart</button>
       </div>
+
       <div class="muted small" style="margin-top:10px">
         Delivery: AP & Telangana only • COD not available
       </div>
@@ -113,9 +113,9 @@ function renderProducts() {
 function addToCart(product, variant, qty) {
   const key = `${product.id}__${variant.label}`;
   const existing = cart.find((x) => `${x.productId}__${x.variantLabel}` === key);
-  if (existing) {
-    existing.qty += qty;
-  } else {
+
+  if (existing) existing.qty += qty;
+  else {
     cart.push({
       productId: product.id,
       name: product.name,
@@ -124,6 +124,7 @@ function addToCart(product, variant, qty) {
       qty,
     });
   }
+
   updateCartUI();
   openCart();
 }
@@ -144,7 +145,6 @@ function updateCartUI() {
   $("cartCount").textContent = items;
   $("cartSub").textContent = `${items} item${items === 1 ? "" : "s"}`;
   $("cartTotal").textContent = formatINR(total);
-
   $("summaryItems").textContent = items;
   $("summaryTotal").textContent = formatINR(total);
 
@@ -178,12 +178,13 @@ function updateCartUI() {
         <button class="linkBtn" type="button">Remove</button>
       </div>
     `;
-    item
-      .querySelector(".linkBtn")
-      .addEventListener("click", () => removeItem(idx));
+
+    item.querySelector(".linkBtn").addEventListener("click", () => removeItem(idx));
     list.appendChild(item);
   });
 }
+
+/* ---------- Drawer / Modal controls ---------- */
 
 function openCart() {
   $("cartDrawer").classList.add("show");
@@ -195,6 +196,9 @@ function closeCart() {
 }
 
 function openCheckout() {
+  // Close cart first (clean UX)
+  closeCart();
+
   $("checkoutModal").classList.add("show");
   $("checkoutModal").setAttribute("aria-hidden", "false");
   $("placeOrderMsg").textContent = "";
@@ -254,13 +258,6 @@ async function placeOrder() {
     return;
   }
 
-  // ✅ extra safety
-  if (proofFile && !proofFile.type.startsWith("image/")) {
-    $("placeOrderMsg").textContent =
-      "Please upload an image screenshot only (PNG/JPG).";
-    return;
-  }
-
   if (WEB_APP_URL.includes("PASTE_")) {
     $("placeOrderMsg").textContent =
       "Admin setup required: add your Google Apps Script Web App URL in script.js";
@@ -299,9 +296,7 @@ async function placeOrder() {
     if (!res.ok) throw new Error(txt || "Server error");
 
     closeCheckout();
-    closeCart();
     openSuccess(orderId);
-
     clearCart();
     form.reset();
     $("paymentProof").value = "";
@@ -321,7 +316,6 @@ function init() {
   renderProducts();
   updateCartUI();
 
-  // Cart open/close
   $("openCartBtn").addEventListener("click", openCart);
   $("footerCartOpen").addEventListener("click", (e) => {
     e.preventDefault();
@@ -331,22 +325,12 @@ function init() {
   $("closeCartBtn").addEventListener("click", closeCart);
   $("drawerBackdrop").addEventListener("click", closeCart);
 
-  // ✅ Checkout open: close cart first
-  $("checkoutBtn").addEventListener("click", () => {
-    closeCart();
-    openCheckout();
-  });
-
+  $("checkoutBtn").addEventListener("click", openCheckout);
   $("closeCheckoutBtn").addEventListener("click", closeCheckout);
   $("checkoutBackdrop").addEventListener("click", closeCheckout);
 
   $("clearCartBtn").addEventListener("click", clearCart);
-
-  // ✅ IMPORTANT FIX: use form submit, not button click
-  $("checkoutForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    placeOrder();
-  });
+  $("placeOrderBtn").addEventListener("click", placeOrder);
 
   $("paymentProof").addEventListener("change", (e) => {
     const f = e.target.files?.[0];
@@ -355,9 +339,7 @@ function init() {
 
   $("closeSuccessBtn").addEventListener("click", closeSuccess);
   $("successBackdrop").addEventListener("click", closeSuccess);
-  $("newOrderBtn").addEventListener("click", () => {
-    closeSuccess();
-  });
+  $("newOrderBtn").addEventListener("click", () => closeSuccess());
 }
 
 document.addEventListener("DOMContentLoaded", init);
