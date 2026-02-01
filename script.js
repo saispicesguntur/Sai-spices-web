@@ -2,43 +2,44 @@
  * 1) CONFIG (EDIT HERE)
  ***********************/
 const BRAND = {
-  upiId: "yourupi@upi",           // change later (e.g., saispices@upi)
+  upiId: "yourupi@upi", // change later (example: saispices@upi)
 };
 
-const SHEET_API_URL = "PASTE_YOUR_WEB_APP_URL_HERE"; // <-- paste your Apps Script Web App URL
+// ✅ Paste your Apps Script Web App URL here
+const SHEET_API_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
 
-// Products (edit prices here anytime)
+// Products (update prices here)
 const PRODUCTS = [
   {
     id: "chilli",
     name: "Red Chilli Powder",
-    desc: "Fresh red chilli powder, hygienically packed. Rich colour & strong flavour.",
+    desc: "Freshly ground, hygienically packed. Strong flavour & rich colour.",
+    tag: "Best seller",
+    artClass: "art--chilli",
     options: [
       { size: 50,  price: 0 },
       { size: 100, price: 0 },
       { size: 250, price: 0 },
     ],
-    tag: "Hot & Fresh",
   },
   {
     id: "turmeric",
     name: "Turmeric Powder",
     desc: "Pure turmeric powder for daily cooking. Fresh aroma and natural colour.",
+    tag: "Daily essential",
+    artClass: "art--turmeric",
     options: [
       { size: 50,  price: 0 },
       { size: 100, price: 0 },
     ],
-    tag: "Daily Essential",
   },
 ];
 
-// Zone mapping by state (weight + distance)
+// Zones by state (edit anytime)
 const ZONE_A = new Set(["Andhra Pradesh","Telangana","Karnataka","Tamil Nadu","Kerala"]);
 const ZONE_B = new Set(["Maharashtra","Goa","Gujarat","Madhya Pradesh","Chhattisgarh","Odisha"]);
-// Everything else = Zone C
 
-// Shipping table: zone -> weightBracket -> cost
-// brackets are: <=250g, <=500g, <=1000g (1kg)
+// Shipping table (zone -> bracket)
 const SHIPPING = {
   A: { w250: 49, w500: 69, w1000: 99 },
   B: { w250: 59, w500: 79, w1000: 119 },
@@ -65,7 +66,6 @@ function getZone(state){
 function calcShipping(totalWeightGrams, state){
   const zone = getZone(state);
   const table = SHIPPING[zone];
-
   if (totalWeightGrams <= 250) return table.w250;
   if (totalWeightGrams <= 500) return table.w500;
   return table.w1000; // up to 1kg
@@ -75,34 +75,19 @@ function loadCart(){
   try { return JSON.parse(localStorage.getItem("saip_cart") || "[]"); }
   catch { return []; }
 }
-
 function saveCart(cart){
   localStorage.setItem("saip_cart", JSON.stringify(cart));
 }
-
-function cartCount(cart){
-  return cart.reduce((sum, i) => sum + i.qty, 0);
-}
-
-function cartWeight(cart){
-  return cart.reduce((sum, i) => sum + (i.size * i.qty), 0);
-}
-
-function cartSubtotal(cart){
-  return cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
-}
-
-function findProduct(productId){
-  return PRODUCTS.find(p => p.id === productId);
-}
+function cartCount(cart){ return cart.reduce((sum, i) => sum + i.qty, 0); }
+function cartWeight(cart){ return cart.reduce((sum, i) => sum + (i.size * i.qty), 0); }
+function cartSubtotal(cart){ return cart.reduce((sum, i) => sum + (i.price * i.qty), 0); }
 
 
 /***********************
  * 3) RENDER PRODUCTS
  ***********************/
 const productGrid = document.getElementById("productGrid");
-const cartCountEl = document.getElementById("cartCount");
-const cartCountEl2 = document.getElementById("cartCount2");
+const upiIdText = document.getElementById("upiIdText");
 
 function renderProducts(){
   productGrid.innerHTML = "";
@@ -111,17 +96,22 @@ function renderProducts(){
     const card = document.createElement("div");
     card.className = "productCard";
 
-    const optionHtml = p.options.map(o => {
-      return `<option value="${o.size}" data-price="${o.price}">${o.size}g — ${₹(o.price)}</option>`;
+    const optionHtml = p.options.map((o, idx) => {
+      const selected = idx === 0 ? "selected" : "";
+      return `<option ${selected} value="${o.size}" data-price="${o.price}">${o.size}g — ${₹(o.price)}</option>`;
     }).join("");
 
     card.innerHTML = `
       <div class="pTop">
         <div>
           <div class="pName">${p.name}</div>
-          <div class="pTag">${p.tag}</div>
+          <div class="muted small">${p.tag}</div>
         </div>
+        <div class="pBadge">${p.tag}</div>
       </div>
+
+      <div class="art ${p.artClass}"></div>
+
       <p class="pDesc">${p.desc}</p>
 
       <div class="pControls">
@@ -131,16 +121,12 @@ function renderProducts(){
         <input class="qty" type="number" min="1" value="1" />
       </div>
 
-      <div class="pPrice">
-        <div>
-          <div class="price" data-price-label> ${₹(p.options[0].price)} </div>
-          <div class="priceHint">Price per pack</div>
-        </div>
+      <div class="pBottom">
+        <div class="price" data-price-label>${₹(p.options[0].price)}</div>
         <button class="btn btn--primary" type="button" data-add="${p.id}">Add to cart</button>
       </div>
     `;
 
-    // Update price label when size changes
     const select = card.querySelector("select");
     const priceLabel = card.querySelector("[data-price-label]");
     select.addEventListener("change", () => {
@@ -148,13 +134,10 @@ function renderProducts(){
       priceLabel.textContent = ₹(opt.getAttribute("data-price"));
     });
 
-    // Add to cart
-    const addBtn = card.querySelector(`[data-add="${p.id}"]`);
-    addBtn.addEventListener("click", () => {
+    card.querySelector(`[data-add="${p.id}"]`).addEventListener("click", () => {
       const size = Number(select.value);
       const price = Number(select.selectedOptions[0].getAttribute("data-price"));
       const qty = Math.max(1, Number(card.querySelector(".qty").value || 1));
-
       addToCart(p.id, p.name, size, price, qty);
       openCart();
     });
@@ -183,6 +166,9 @@ const clearCartBtn = document.getElementById("clearCartBtn");
 const cartSubtotalEl = document.getElementById("cartSubtotal");
 const cartShipEl = document.getElementById("cartShip");
 const cartTotalEl = document.getElementById("cartTotal");
+
+const cartCountEl = document.getElementById("cartCount");
+const cartCountEl2 = document.getElementById("cartCount2");
 
 function openCart(){
   drawer.classList.add("isOpen");
@@ -289,17 +275,16 @@ function renderCart(){
 
 
 /***********************
- * 5) CHECKOUT SUMMARY + SUBMIT
+ * 5) CHECKOUT
  ***********************/
 const sumItems = document.getElementById("sumItems");
 const sumSubtotal = document.getElementById("sumSubtotal");
 const sumShipping = document.getElementById("sumShipping");
 const sumTotal = document.getElementById("sumTotal");
 
-const upiIdText = document.getElementById("upiIdText");
-
 const stateEl = document.getElementById("state");
 const orderForm = document.getElementById("orderForm");
+
 const successBox = document.getElementById("successBox");
 const errorBox = document.getElementById("errorBox");
 const orderIdOut = document.getElementById("orderIdOut");
@@ -330,14 +315,13 @@ stateEl?.addEventListener("change", () => {
   renderCart();
 });
 
+// post to Apps Script
 async function postToSheet(payload){
   if (!SHEET_API_URL || SHEET_API_URL.includes("PASTE_YOUR_WEB_APP_URL_HERE")){
     alert("Please paste your Apps Script Web App URL in script.js (SHEET_API_URL).");
     return false;
   }
-
   try{
-    // no-cors works for Apps Script web app "Anyone" access
     await fetch(SHEET_API_URL, {
       method: "POST",
       mode: "no-cors",
@@ -345,8 +329,8 @@ async function postToSheet(payload){
       body: JSON.stringify(payload)
     });
     return true;
-  }catch(err){
-    console.error(err);
+  }catch(e){
+    console.error(e);
     return false;
   }
 }
@@ -362,19 +346,18 @@ orderForm?.addEventListener("submit", async (e) => {
     return;
   }
 
-  // collect fields
   const firstName = document.getElementById("firstName").value.trim();
   const lastName  = document.getElementById("lastName").value.trim();
   const phone     = document.getElementById("phone").value.trim();
+  const pincode   = document.getElementById("pincode").value.trim();
   const address1  = document.getElementById("address1").value.trim();
   const area      = document.getElementById("area").value.trim();
   const city      = document.getElementById("city").value.trim();
   const district  = document.getElementById("district").value.trim();
   const state     = document.getElementById("state").value.trim();
-  const pincode   = document.getElementById("pincode").value.trim();
   const upiRef    = document.getElementById("upiRef").value.trim();
+  const notes     = document.getElementById("notes").value.trim();
 
-  // basic checks
   if (!/^\d{10}$/.test(phone)){
     alert("Please enter a valid 10-digit phone number.");
     return;
@@ -390,7 +373,6 @@ orderForm?.addEventListener("submit", async (e) => {
   const shipping = calcShipping(weight, state);
   const finalAmount = subtotal + shipping;
 
-  // create readable item list
   const itemsText = cart.map(i => `${i.name} ${i.size}g x${i.qty}`).join(" | ");
 
   const payload = {
@@ -399,9 +381,9 @@ orderForm?.addEventListener("submit", async (e) => {
     lastName,
     phone,
     product: itemsText,
-    size: "-",                 // kept for compatibility with your Apps Script columns
-    quantity: cartCount(cart), // total items count
-    weight,                    // grams
+    size: "-",                 // keep for your Apps Script columns
+    quantity: cartCount(cart),
+    weight,
     subtotal,
     shipping,
     finalAmount,
@@ -411,13 +393,13 @@ orderForm?.addEventListener("submit", async (e) => {
     city,
     district,
     state,
-    pincode
+    pincode,
+    notes
   };
 
   const ok = await postToSheet(payload);
 
   if (ok){
-    // clear cart + show success
     saveCart([]);
     updateCartBadges();
     updateCheckoutSummary();
@@ -426,13 +408,11 @@ orderForm?.addEventListener("submit", async (e) => {
     orderIdOut.textContent = orderId;
     successBox.style.display = "block";
     orderForm.reset();
-    // keep UPI text
     upiIdText.textContent = BRAND.upiId;
 
-    // scroll to success message
     successBox.scrollIntoView({ behavior: "smooth", block: "center" });
   } else {
-    alert("Order not saved. Please try again or check internet / Apps Script URL.");
+    alert("Order not saved. Please check Apps Script URL / internet and try again.");
   }
 });
 
@@ -441,12 +421,12 @@ orderForm?.addEventListener("submit", async (e) => {
  * 6) INIT
  ***********************/
 upiIdText.textContent = BRAND.upiId;
+document.getElementById("year").textContent = new Date().getFullYear();
 
 renderProducts();
 updateCartBadges();
 updateCheckoutSummary();
 
-// close drawer when navigating
 document.getElementById("goCheckoutBtn")?.addEventListener("click", () => {
   closeCart();
   setTimeout(() => updateCheckoutSummary(), 300);
