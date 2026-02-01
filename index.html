@@ -11,168 +11,226 @@
   <header class="top">
     <div class="container nav">
       <div class="brand">
-        <!-- Put your logo image in repo as: logo.png (or change filename here) -->
-        <img class="logo" src="logo.png" alt="Sai Spices logo" />
+        <img class="brand__logo" src="logo.jpg" alt="Sai Spices logo" />
         <div>
           <div class="brand__name">Sai Spices</div>
-          <div class="brand__sub">Fresh, homemade spice powders • Delivery: AP & TG only</div>
+          <div class="brand__sub">Homemade spices • Guntur, Andhra Pradesh</div>
         </div>
       </div>
 
-      <button class="btn btn--primary" id="openCartBtn">
-        Cart <span class="pill" id="cartCount">0</span>
-      </button>
+      <div class="nav__actions">
+        <a class="btn btn--ghost" href="tel:+919014140536">Call</a>
+        <button class="btn btn--primary" id="openCartBtn">Cart (<span id="cartCount">0</span>)</button>
+      </div>
     </div>
   </header>
 
-  <!-- Main -->
-  <main class="container">
+  <!-- Hero -->
+  <main>
     <section class="hero">
-      <h1>Order spices in minutes.</h1>
-      <p class="muted">
-        Choose a product → select size → add to cart → checkout.
-      </p>
+      <div class="container hero__grid">
+        <div>
+          <div class="pill">Delivery: Andhra Pradesh & Telangana (initially)</div>
+          <h1>Order authentic homemade spices in minutes.</h1>
+          <p class="lead">
+            Choose a product, select size, add to cart, checkout, and upload your UPI payment screenshot.
+            We confirm and process your order quickly.
+          </p>
+
+          <div class="trust">
+            <div class="trust__item">✅ Freshly packed</div>
+            <div class="trust__item">✅ Clear pricing</div>
+            <div class="trust__item">✅ AP/TG delivery</div>
+          </div>
+
+          <div class="note">
+            <strong>Note:</strong> Currently we accept <strong>UPI (Manual)</strong> only.
+            No Cash on Delivery.
+          </div>
+        </div>
+
+        <aside class="card">
+          <div class="card__top">
+            <div class="badge">Quick checkout</div>
+            <div class="mini">Order ID generated</div>
+          </div>
+          <div class="steps">
+            <div class="step"><span>1</span> Select products + sizes</div>
+            <div class="step"><span>2</span> Enter delivery details</div>
+            <div class="step"><span>3</span> Pay via UPI + upload screenshot</div>
+          </div>
+        </aside>
+      </div>
     </section>
 
     <!-- Products -->
     <section class="section">
-      <h2>Products</h2>
-      <div class="grid" id="productsGrid"></div>
+      <div class="container">
+        <h2>Products</h2>
+        <p class="muted">Select a size and quantity, then add to cart.</p>
+
+        <div class="products" id="productsGrid"></div>
+      </div>
     </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container footer__grid">
+        <div>
+          <div class="footer__brand">Sai Spices</div>
+          <p class="muted small">
+            Homemade spice powders from Guntur, Andhra Pradesh.
+            Delivery available in Andhra Pradesh & Telangana (initially).
+          </p>
+        </div>
+
+        <div class="footer__links">
+          <a href="#" id="footerCartOpen">Open cart</a>
+          <a href="tel:+919014140536">Call: +91 9014140536</a>
+        </div>
+
+        <div class="footer__contact">
+          <div class="muted small">Location: Guntur, Andhra Pradesh</div>
+          <div class="muted small">© <span id="year"></span> Sai Spices</div>
+        </div>
+      </div>
+    </footer>
   </main>
 
   <!-- Cart Drawer -->
-  <aside class="drawer" id="drawer" aria-hidden="true">
-    <div class="drawer__backdrop" id="drawerBackdrop"></div>
-
-    <div class="drawer__panel" role="dialog" aria-modal="true" aria-label="Shopping cart">
-      <div class="drawer__head">
+  <div class="drawer" id="cartDrawer" aria-hidden="true">
+    <div class="drawer__panel">
+      <div class="drawer__top">
         <div>
           <div class="drawer__title">Your Cart</div>
-          <div class="drawer__sub muted" id="cartSub">0 items</div>
+          <div class="muted small" id="cartSub">0 items</div>
         </div>
         <button class="iconBtn" id="closeCartBtn" aria-label="Close cart">✕</button>
       </div>
 
-      <div class="drawer__body">
-        <div id="cartItems" class="cartItems"></div>
+      <div class="drawer__content" id="cartItems"></div>
 
-        <div class="summary">
-          <div class="row">
-            <span class="muted">Subtotal</span>
-            <strong id="subtotal">₹0</strong>
-          </div>
-          <div class="row">
-            <span class="muted">Delivery</span>
-            <strong class="muted">Calculated on confirmation</strong>
-          </div>
-          <div class="row row--total">
-            <span>Total</span>
-            <strong id="total">₹0</strong>
-          </div>
+      <div class="drawer__bottom">
+        <div class="totals">
+          <div class="muted">Total</div>
+          <div class="total" id="cartTotal">₹0</div>
         </div>
 
-        <hr class="sep"/>
+        <button class="btn btn--primary btn--full" id="checkoutBtn" disabled>Checkout</button>
+        <button class="btn btn--ghost btn--full" id="clearCartBtn" disabled>Clear cart</button>
 
-        <!-- Checkout -->
-        <div class="checkout">
-          <h3>Checkout</h3>
+        <div class="small muted">
+          Delivery: AP & TG only • COD not available
+        </div>
+      </div>
+    </div>
+    <div class="drawer__backdrop" id="drawerBackdrop"></div>
+  </div>
 
-          <div class="formGrid">
+  <!-- Checkout Modal -->
+  <div class="modal" id="checkoutModal" aria-hidden="true">
+    <div class="modal__panel">
+      <div class="modal__top">
+        <div class="modal__title">Checkout</div>
+        <button class="iconBtn" id="closeCheckoutBtn" aria-label="Close checkout">✕</button>
+      </div>
+
+      <div class="checkoutGrid">
+        <div class="checkoutCard">
+          <div class="sectionTitle">Delivery details</div>
+
+          <form id="checkoutForm" class="form">
             <label>
               Full name
-              <input id="custName" type="text" placeholder="Your name" />
+              <input required name="name" placeholder="Your name" />
             </label>
 
             <label>
-              Phone (WhatsApp)
-              <input id="custPhone" type="tel" placeholder="e.g. 98xxxxxx" />
+              Phone
+              <input required name="phone" inputmode="tel" placeholder="+91..." />
             </label>
 
             <label>
-              State (delivery only AP/TG)
-              <select id="custState">
-                <option value="">Select</option>
-                <option value="AP">Andhra Pradesh (AP)</option>
-                <option value="TG">Telangana (TG)</option>
-              </select>
+              Address (House / Street / Area)
+              <input required name="address" placeholder="Full delivery address" />
             </label>
 
-            <label class="full">
-              Full address
-              <textarea id="custAddress" rows="3" placeholder="House no, street, area, city, pincode"></textarea>
-            </label>
-          </div>
-
-          <div class="payBox">
-            <div class="payRow">
-              <div>
-                <strong>Payment method</strong>
-                <div class="muted small">Card is demo. UPI uses a UPI payment link.</div>
-              </div>
-              <select id="payMethod">
-                <option value="UPI">UPI</option>
-                <option value="CARD">Card (demo)</option>
-              </select>
-            </div>
-
-            <!-- UPI -->
-            <div id="upiBox" class="methodBox">
+            <div class="row">
               <label>
-                Your UPI ID (optional)
-                <input id="payerUpi" type="text" placeholder="name@bank (optional)" />
+                City
+                <input required name="city" value="Guntur" />
               </label>
-              <div class="muted small">
-                When you click “Pay & Place Order”, it will open a UPI link (works on mobile).
-              </div>
-              <div class="muted small">
-                Admin: set your UPI ID inside <code>script.js</code> (PAYEE_UPI).
-              </div>
+
+              <label>
+                State (AP/TG only)
+                <select required name="state">
+                  <option value="">Select</option>
+                  <option>Andhra Pradesh</option>
+                  <option>Telangana</option>
+                </select>
+              </label>
             </div>
 
-            <!-- Card demo -->
-            <div id="cardBox" class="methodBox hidden">
-              <div class="formGrid">
-                <label>
-                  Cardholder name
-                  <input id="cardName" type="text" placeholder="Name on card" />
-                </label>
-                <label>
-                  Last 4 digits (demo)
-                  <input id="cardLast4" type="text" maxlength="4" placeholder="1234" />
-                </label>
-              </div>
-              <div class="muted small">
-                This is only a demo flow. Real card payments need a gateway (Stripe/Razorpay).
-              </div>
+            <label>
+              Pincode
+              <input required name="pincode" inputmode="numeric" placeholder="6-digit pincode" />
+            </label>
+          </form>
+        </div>
+
+        <div class="checkoutCard">
+          <div class="sectionTitle">Payment (UPI Manual)</div>
+
+          <div class="upiBox">
+            <div class="upiTitle">Pay to UPI ID:</div>
+            <div class="upiId" id="upiIdText">UPI_ID_TO_ADD_LATER</div>
+            <div class="muted small">
+              After payment, please upload the payment screenshot below to confirm your order.
+            </div>
+
+            <div class="upload">
+              <label class="uploadLabel">
+                Upload payment screenshot (required)
+                <input id="paymentProof" type="file" accept="image/*" />
+              </label>
+              <div class="muted small" id="proofHint">No file selected</div>
             </div>
           </div>
 
-          <button class="btn btn--primary btn--full" id="placeOrderBtn">
-            Pay & Place Order
-          </button>
+          <div class="summary">
+            <div class="summaryRow">
+              <span class="muted">Items</span>
+              <span id="summaryItems">0</span>
+            </div>
+            <div class="summaryRow">
+              <span class="muted">Total</span>
+              <span class="summaryTotal" id="summaryTotal">₹0</span>
+            </div>
+          </div>
 
-          <p class="error" id="errorBox"></p>
+          <button class="btn btn--primary btn--full" id="placeOrderBtn">Place order</button>
+          <div class="small muted" id="placeOrderMsg"></div>
         </div>
       </div>
     </div>
-  </aside>
+    <div class="modal__backdrop" id="checkoutBackdrop"></div>
+  </div>
 
-  <!-- Success Screen -->
-  <div class="modal hidden" id="successModal" role="dialog" aria-modal="true" aria-label="Order success">
-    <div class="modal__backdrop" id="successBackdrop"></div>
-    <div class="modal__card">
-      <div class="tick">✅</div>
-      <h2>Order placed successfully!</h2>
-      <p class="muted">Your Order ID:</p>
-      <div class="orderId" id="orderIdText">SS-0000</div>
-      <div class="muted small" id="orderSummaryText"></div>
-
-      <div class="modal__actions">
-        <button class="btn" id="newOrderBtn">Place another order</button>
-        <button class="btn btn--primary" id="closeSuccessBtn">Close</button>
+  <!-- Success Modal -->
+  <div class="modal" id="successModal" aria-hidden="true">
+    <div class="modal__panel modal__panel--small">
+      <div class="successBox">
+        <div class="successIcon">✅</div>
+        <h3>Order placed successfully!</h3>
+        <p class="muted">Your Order ID:</p>
+        <div class="orderId" id="orderIdText">SS-0000</div>
+        <div class="rowBtns">
+          <button class="btn btn--ghost" id="newOrderBtn">Place another order</button>
+          <button class="btn btn--primary" id="closeSuccessBtn">Close</button>
+        </div>
       </div>
     </div>
+    <div class="modal__backdrop" id="successBackdrop"></div>
   </div>
 
   <script src="script.js"></script>
