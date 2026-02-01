@@ -6,6 +6,7 @@
   <title>Sai Spices — Order Online</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
   <!-- Header -->
   <header class="top">
@@ -20,7 +21,9 @@
 
       <div class="nav__actions">
         <a class="btn btn--ghost" href="tel:+919014140536">Call</a>
-        <button class="btn btn--primary" id="openCartBtn">Cart (<span id="cartCount">0</span>)</button>
+        <button class="btn btn--primary" id="openCartBtn" type="button">
+          Cart (<span id="cartCount">0</span>)
+        </button>
       </div>
     </div>
   </header>
@@ -64,7 +67,7 @@
     </section>
 
     <!-- Products -->
-    <section class="section">
+    <section class="section" id="products">
       <div class="container">
         <h2>Products</h2>
         <p class="muted">Select a size and quantity, then add to cart.</p>
@@ -99,13 +102,13 @@
 
   <!-- Cart Drawer -->
   <div class="drawer" id="cartDrawer" aria-hidden="true">
-    <div class="drawer__panel">
+    <div class="drawer__panel" role="dialog" aria-modal="true" aria-label="Cart">
       <div class="drawer__top">
         <div>
           <div class="drawer__title">Your Cart</div>
           <div class="muted small" id="cartSub">0 items</div>
         </div>
-        <button class="iconBtn" id="closeCartBtn" aria-label="Close cart">✕</button>
+        <button class="iconBtn" id="closeCartBtn" type="button" aria-label="Close cart">✕</button>
       </div>
 
       <div class="drawer__content" id="cartItems"></div>
@@ -116,8 +119,13 @@
           <div class="total" id="cartTotal">₹0</div>
         </div>
 
-        <button class="btn btn--primary btn--full" id="checkoutBtn" disabled>Checkout</button>
-        <button class="btn btn--ghost btn--full" id="clearCartBtn" disabled>Clear cart</button>
+        <button class="btn btn--primary btn--full" id="checkoutBtn" type="button" disabled>
+          Checkout
+        </button>
+
+        <button class="btn btn--ghost btn--full" id="clearCartBtn" type="button" disabled>
+          Clear cart
+        </button>
 
         <div class="small muted">
           Delivery: AP & TG only • COD not available
@@ -129,17 +137,17 @@
 
   <!-- Checkout Modal -->
   <div class="modal" id="checkoutModal" aria-hidden="true">
-    <div class="modal__panel">
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-label="Checkout">
       <div class="modal__top">
         <div class="modal__title">Checkout</div>
-        <button class="iconBtn" id="closeCheckoutBtn" aria-label="Close checkout">✕</button>
+        <button class="iconBtn" id="closeCheckoutBtn" type="button" aria-label="Close checkout">✕</button>
       </div>
 
       <div class="checkoutGrid">
         <div class="checkoutCard">
           <div class="sectionTitle">Delivery details</div>
 
-          <form id="checkoutForm" class="form">
+          <form id="checkoutForm" class="form" novalidate>
             <label>
               Full name
               <input required name="name" placeholder="Your name" />
@@ -191,7 +199,13 @@
             <div class="upload">
               <label class="uploadLabel">
                 Upload payment screenshot (required)
-                <input id="paymentProof" type="file" accept="image/*" />
+                <input
+                  id="paymentProof"
+                  name="paymentProof"
+                  type="file"
+                  accept="image/*"
+                  required
+                />
               </label>
               <div class="muted small" id="proofHint">No file selected</div>
             </div>
@@ -208,7 +222,10 @@
             </div>
           </div>
 
-          <button class="btn btn--primary btn--full" id="placeOrderBtn">Place order</button>
+          <!-- Important: button submits the delivery form -->
+          <button class="btn btn--primary btn--full" id="placeOrderBtn" type="submit" form="checkoutForm">
+            Place order
+          </button>
           <div class="small muted" id="placeOrderMsg"></div>
         </div>
       </div>
@@ -218,15 +235,15 @@
 
   <!-- Success Modal -->
   <div class="modal" id="successModal" aria-hidden="true">
-    <div class="modal__panel modal__panel--small">
+    <div class="modal__panel modal__panel--small" role="dialog" aria-modal="true" aria-label="Order success">
       <div class="successBox">
         <div class="successIcon">✅</div>
         <h3>Order placed successfully!</h3>
         <p class="muted">Your Order ID:</p>
         <div class="orderId" id="orderIdText">SS-0000</div>
         <div class="rowBtns">
-          <button class="btn btn--ghost" id="newOrderBtn">Place another order</button>
-          <button class="btn btn--primary" id="closeSuccessBtn">Close</button>
+          <button class="btn btn--ghost" id="newOrderBtn" type="button">Place another order</button>
+          <button class="btn btn--primary" id="closeSuccessBtn" type="button">Close</button>
         </div>
       </div>
     </div>
