@@ -50,7 +50,9 @@ const PRODUCTS = [
   },
 ];
 
-const cart = []; // {productId, name, variantLabel, price, qty}
+// Cart item format: {productId, name, variantLabel, price, qty}
+const cart = [];
+
 const $ = (id) => document.getElementById(id);
 
 function formatINR(n) {
@@ -63,8 +65,9 @@ function cartTotals() {
   return { items, total };
 }
 
-/* ---------- UI render ---------- */
-
+/* ---------------------------
+   UI: Products
+---------------------------- */
 function renderProducts() {
   const grid = $("productsGrid");
   grid.innerHTML = "";
@@ -83,13 +86,13 @@ function renderProducts() {
     el.innerHTML = `
       <h3>${p.name}</h3>
       <p>${p.desc}</p>
-
       <div class="row">
-        <select class="variantSel" aria-label="Select size">${variantOptions}</select>
+        <select class="variantSel" aria-label="Select size">
+          ${variantOptions}
+        </select>
         <input class="qty" type="number" min="1" value="1" aria-label="Quantity" />
         <button class="btn btn--primary addBtn" type="button">Add to cart</button>
       </div>
-
       <div class="muted small" style="margin-top:10px">
         Delivery: AP & Telangana only • COD not available
       </div>
@@ -104,6 +107,12 @@ function renderProducts() {
       const q = Math.max(1, Number(qty.value || 1));
       const v = p.variants[idx];
       addToCart(p, v, q);
+
+      // ✅ IMPORTANT CHANGE:
+      // Do NOT open cart automatically.
+      // Only update cart count.
+      btn.textContent = "Added ✓";
+      setTimeout(() => (btn.textContent = "Add to cart"), 800);
     });
 
     grid.appendChild(el);
@@ -112,7 +121,9 @@ function renderProducts() {
 
 function addToCart(product, variant, qty) {
   const key = `${product.id}__${variant.label}`;
-  const existing = cart.find((x) => `${x.productId}__${x.variantLabel}` === key);
+  const existing = cart.find(
+    (x) => `${x.productId}__${x.variantLabel}` === key
+  );
 
   if (existing) existing.qty += qty;
   else {
@@ -126,9 +137,11 @@ function addToCart(product, variant, qty) {
   }
 
   updateCartUI();
-  openCart();
 }
 
+/* ---------------------------
+   UI: Cart drawer
+---------------------------- */
 function removeItem(index) {
   cart.splice(index, 1);
   updateCartUI();
@@ -145,6 +158,7 @@ function updateCartUI() {
   $("cartCount").textContent = items;
   $("cartSub").textContent = `${items} item${items === 1 ? "" : "s"}`;
   $("cartTotal").textContent = formatINR(total);
+
   $("summaryItems").textContent = items;
   $("summaryTotal").textContent = formatINR(total);
 
@@ -178,31 +192,53 @@ function updateCartUI() {
         <button class="linkBtn" type="button">Remove</button>
       </div>
     `;
-
-    item.querySelector(".linkBtn").addEventListener("click", () => removeItem(idx));
+    item
+      .querySelector(".linkBtn")
+      .addEventListener("click", () => removeItem(idx));
     list.appendChild(item);
   });
 }
-
-/* ---------- Drawer / Modal controls ---------- */
 
 function openCart() {
   $("cartDrawer").classList.add("show");
   $("cartDrawer").setAttribute("aria-hidden", "false");
 }
+
 function closeCart() {
   $("cartDrawer").classList.remove("show");
   $("cartDrawer").setAttribute("aria-hidden", "true");
 }
 
-function openCheckout() {
-  // Close cart first (clean UX)
-  closeCart();
+/* ---------------------------
+   UI: Checkout (2-step)
+   Step 1: Details
+   Step 2: Payment + Upload
+---------------------------- */
+function showPaymentStep(show) {
+  // payment column is the SECOND ".checkoutCard"
+  const cards = document.querySelectorAll(".checkoutCard");
+  const paymentCard = cards[1];
+  const detailsBtn = $("toPaymentBtn");
+  const placeBtn = $("placeOrderBtn");
 
+  if (!paymentCard) return;
+
+  paymentCard.style.display = show ? "block" : "none";
+  detailsBtn.style.display = show ? "none" : "block";
+  placeBtn.style.display = show ? "block" : "none";
+
+  $("placeOrderMsg").textContent = "";
+  if ($("detailsMsg")) $("detailsMsg").textContent = "";
+}
+
+function openCheckout() {
   $("checkoutModal").classList.add("show");
   $("checkoutModal").setAttribute("aria-hidden", "false");
-  $("placeOrderMsg").textContent = "";
+
+  // Start at details step
+  showPaymentStep(false);
 }
+
 function closeCheckout() {
   $("checkoutModal").classList.remove("show");
   $("checkoutModal").setAttribute("aria-hidden", "true");
@@ -213,6 +249,7 @@ function openSuccess(orderId) {
   $("successModal").classList.add("show");
   $("successModal").setAttribute("aria-hidden", "false");
 }
+
 function closeSuccess() {
   $("successModal").classList.remove("show");
   $("successModal").setAttribute("aria-hidden", "true");
@@ -232,22 +269,43 @@ function fileToDataUrl(file) {
   });
 }
 
+function getDeliveryDetails() {
+  const form = $("checkoutForm");
+  const fd = new FormData(form);
+
+  const name = (fd.get("name") || "").toString().trim();
+  const phone = (fd.get("phone") || "").toString().trim();
+  const address = (fd.get("address") || "").toString().trim();
+  const city = (fd.get("city") || "").toString().trim();
+  const state = (fd.get("state") || "").toString().trim();
+  const pincode = (fd.get("pincode") || "").toString().trim();
+
+  return { name, phone, address, city, state, pincode };
+}
+
+function validateDetails(d) {
+  if (!d.name || !d.phone || !d.address || !d.city || !d.state || !d.pincode) {
+    return "Please fill all delivery details.";
+  }
+  // basic phone check
+  if (d.phone.replace(/\D/g, "").length < 10) {
+    return "Please enter a valid phone number.";
+  }
+  // basic pincode check
+  if (d.pincode.replace(/\D/g, "").length !== 6) {
+    return "Please enter a valid 6-digit pincode.";
+  }
+  return "";
+}
+
 async function placeOrder() {
   const { items, total } = cartTotals();
   if (items === 0) return;
 
-  const form = $("checkoutForm");
-  const formData = new FormData(form);
-
-  const name = (formData.get("name") || "").toString().trim();
-  const phone = (formData.get("phone") || "").toString().trim();
-  const address = (formData.get("address") || "").toString().trim();
-  const city = (formData.get("city") || "").toString().trim();
-  const state = (formData.get("state") || "").toString().trim();
-  const pincode = (formData.get("pincode") || "").toString().trim();
-
-  if (!name || !phone || !address || !city || !state || !pincode) {
-    $("placeOrderMsg").textContent = "Please fill all delivery details.";
+  const details = getDeliveryDetails();
+  const err = validateDetails(details);
+  if (err) {
+    $("placeOrderMsg").textContent = err;
     return;
   }
 
@@ -265,7 +323,7 @@ async function placeOrder() {
   }
 
   $("placeOrderBtn").disabled = true;
-  $("placeOrderMsg").textContent = "Placing order...";
+  $("placeOrderMsg").textContent = "Submitting order...";
 
   const orderId = makeOrderId();
   const proofDataUrl = await fileToDataUrl(proofFile);
@@ -273,7 +331,7 @@ async function placeOrder() {
   const payload = {
     orderId,
     createdAt: new Date().toISOString(),
-    customer: { name, phone, address, city, state, pincode },
+    customer: details,
     delivery: "AP & Telangana only",
     payment: { method: "UPI (Manual)", upiId: UPI_ID },
     cart,
@@ -295,15 +353,25 @@ async function placeOrder() {
     const txt = await res.text();
     if (!res.ok) throw new Error(txt || "Server error");
 
+    // Success
     closeCheckout();
+    closeCart();
     openSuccess(orderId);
+
+    // clear
     clearCart();
-    form.reset();
+    $("checkoutForm").reset();
     $("paymentProof").value = "";
     $("proofHint").textContent = "No file selected";
-  } catch (err) {
+
+    // ✅ “automatic message” (real SMS/WhatsApp needs API)
+    // We show a confirmation message + you can later add SMS gateway.
+    alert(
+      `Sai Spices: Your order is confirmed! Order ID: ${orderId}\nWe will call you soon to confirm delivery.`
+    );
+  } catch (e) {
     $("placeOrderMsg").textContent =
-      "Failed to place order. Please try again. (" + err.message + ")";
+      "Failed to place order. Please try again. (" + e.message + ")";
   } finally {
     $("placeOrderBtn").disabled = false;
   }
@@ -316,6 +384,7 @@ function init() {
   renderProducts();
   updateCartUI();
 
+  // Cart open only when user clicks Cart button
   $("openCartBtn").addEventListener("click", openCart);
   $("footerCartOpen").addEventListener("click", (e) => {
     e.preventDefault();
@@ -325,11 +394,26 @@ function init() {
   $("closeCartBtn").addEventListener("click", closeCart);
   $("drawerBackdrop").addEventListener("click", closeCart);
 
+  // Checkout opens checkout modal (details step)
   $("checkoutBtn").addEventListener("click", openCheckout);
   $("closeCheckoutBtn").addEventListener("click", closeCheckout);
   $("checkoutBackdrop").addEventListener("click", closeCheckout);
 
   $("clearCartBtn").addEventListener("click", clearCart);
+
+  // Step 1 -> Step 2
+  $("toPaymentBtn").addEventListener("click", () => {
+    const details = getDeliveryDetails();
+    const err = validateDetails(details);
+    if (err) {
+      if ($("detailsMsg")) $("detailsMsg").textContent = err;
+      return;
+    }
+    // move to payment step
+    showPaymentStep(true);
+  });
+
+  // Finish order
   $("placeOrderBtn").addEventListener("click", placeOrder);
 
   $("paymentProof").addEventListener("change", (e) => {
@@ -339,7 +423,9 @@ function init() {
 
   $("closeSuccessBtn").addEventListener("click", closeSuccess);
   $("successBackdrop").addEventListener("click", closeSuccess);
-  $("newOrderBtn").addEventListener("click", () => closeSuccess());
+  $("newOrderBtn").addEventListener("click", () => {
+    closeSuccess();
+  });
 }
 
 document.addEventListener("DOMContentLoaded", init);
