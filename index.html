@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Sai Spices | Fresh Chilli & Turmeric Powder</title>
-  <meta name="description" content="Sai Spices - Freshly ground chilli powder and turmeric powder. All-India delivery. Order online with UPI." />
-  <meta name="theme-color" content="#7c2d12" />
+  <meta name="description" content="Sai Spices – Red chilli powder and turmeric powder. All-India delivery. Order online with UPI. Shipping by weight + zone." />
+  <meta name="theme-color" content="#9a3412" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,143 +15,146 @@
 </head>
 
 <body>
-  <!-- Topbar -->
-  <header class="topbar">
-    <div class="container topbar__inner">
+  <!-- Announcement -->
+  <div class="announce">
+    <div class="container announce__inner">
+      <div>🚚 All-India delivery • Shipping calculated at checkout • UPI payments</div>
+      <div class="announce__right">Customer care: <a href="tel:+910000000000">+91 00000 00000</a></div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="header" id="top">
+    <div class="container header__inner">
       <a class="brand" href="#top" aria-label="Sai Spices Home">
-        <div class="brand__logo" aria-hidden="true">
-          <!-- Simple spice mark (no image required) -->
-          <span class="logoPepper">🌶️</span>
-        </div>
+        <!-- Replace later with real logo image if you want -->
+        <div class="brand__mark" aria-hidden="true">🌶️</div>
         <div class="brand__text">
           <div class="brand__name">Sai Spices</div>
-          <div class="brand__tag">Fresh • Hygienic • All-India Delivery</div>
+          <div class="brand__tag">Fresh • Hygienic • Packed with care</div>
         </div>
       </a>
 
-      <nav class="nav" aria-label="Primary">
-        <a href="#shop">Shop</a>
-        <a href="#how">How it works</a>
+      <nav class="nav" aria-label="Primary navigation">
+        <a href="#featured">Featured</a>
+        <a href="#collections">Collections</a>
         <a href="#shipping">Shipping</a>
         <a href="#checkout">Checkout</a>
       </nav>
 
-      <div class="topbar__cta">
-        <button class="btn btn--ghost" id="openCartBtn" type="button">
-          Cart <span class="cartDot" id="cartCount">0</span>
+      <div class="header__actions">
+        <button class="iconBtn" id="openCartBtn" type="button" aria-label="Open cart">
+          <span class="icon">🛒</span>
+          <span class="pillCount" id="cartCount">0</span>
         </button>
-        <a class="btn btn--primary" href="#shop">Order now</a>
+        <a class="btn btn--primary" href="#featured">Shop now</a>
       </div>
     </div>
   </header>
 
-  <main id="top">
-    <!-- Hero -->
+  <main>
+    <!-- Hero / Banner -->
     <section class="hero">
       <div class="container hero__grid">
         <div class="hero__copy">
-          <div class="pill">🌶️ Chilli Powder • ✨ Turmeric Powder • 🚚 All-India Delivery</div>
-
-          <h1 class="h1">Fresh spices that taste like home.</h1>
-
-          <p class="lead">
-            Premium quality red chilli powder and turmeric powder, hygienically packed.
-            Order online — shipping calculated by weight and distance. UPI payments supported.
+          <div class="hero__kicker">Authentic spices for everyday cooking</div>
+          <h1 class="hero__title">Fresh Red Chilli & Turmeric Powder, delivered across India.</h1>
+          <p class="hero__lead">
+            Choose your pack size, add to cart, and checkout with UPI.
+            Shipping is calculated by <b>total weight</b> and <b>delivery zone</b>.
           </p>
-
-          <div class="hero__buttons">
-            <a class="btn btn--primary" href="#shop">Shop products</a>
+          <div class="hero__cta">
+            <a class="btn btn--primary" href="#featured">View products</a>
             <a class="btn btn--ghost" href="#checkout">Go to checkout</a>
           </div>
 
-          <div class="trust">
-            <div class="trust__item">✅ Freshly packed</div>
-            <div class="trust__item">✅ Hygienic processing</div>
-            <div class="trust__item">✅ All-India shipping</div>
-            <div class="trust__item">✅ UPI payments</div>
-          </div>
-
-          <div class="statsRow">
-            <div class="miniStat">
-              <div class="miniStat__num">2</div>
-              <div class="miniStat__lbl">core products</div>
-            </div>
-            <div class="miniStat">
-              <div class="miniStat__num">5</div>
-              <div class="miniStat__lbl">pack sizes</div>
-            </div>
-            <div class="miniStat">
-              <div class="miniStat__num">Fast</div>
-              <div class="miniStat__lbl">dispatch support</div>
-            </div>
+          <div class="trustRow">
+            <div class="trustItem">✅ Hygienic packing</div>
+            <div class="trustItem">✅ Fresh batches</div>
+            <div class="trustItem">✅ All-India delivery</div>
+            <div class="trustItem">✅ UPI payments</div>
           </div>
         </div>
 
-        <!-- Hero card -->
-        <aside class="heroCard">
-          <div class="heroCard__top">
-            <div class="badge">Today’s best sellers</div>
+        <div class="hero__panel">
+          <div class="panelCard">
+            <div class="panelCard__top">
+              <div class="badge">Featured today</div>
+              <div class="muted small">Quick picks</div>
+            </div>
+
+            <div class="quickList">
+              <div class="quickItem">
+                <div class="thumb thumb--chilli"></div>
+                <div>
+                  <div class="qTitle">Red Chilli Powder</div>
+                  <div class="muted small">Best seller packs</div>
+                </div>
+              </div>
+              <div class="quickItem">
+                <div class="thumb thumb--turmeric"></div>
+                <div>
+                  <div class="qTitle">Turmeric Powder</div>
+                  <div class="muted small">Daily essential</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <button class="btn btn--primary btn--full" id="openCartBtn2" type="button">Open cart</button>
+            <p class="muted small" style="margin:10px 0 0;">
+              Prices & shipping rules can be updated anytime.
+            </p>
           </div>
-
-          <div class="miniList">
-            <div class="miniLine"><span class="dot"></span><span>Red Chilli Powder 100g</span></div>
-            <div class="miniLine"><span class="dot"></span><span>Red Chilli Powder 250g</span></div>
-            <div class="miniLine"><span class="dot"></span><span>Turmeric Powder 100g</span></div>
-          </div>
-
-          <div class="divider"></div>
-
-          <p class="muted small">
-            Add products to cart and checkout below. Shipping is calculated automatically.
-          </p>
-
-          <button class="btn btn--primary btn--full" id="openCartBtn2" type="button">Open cart</button>
-        </aside>
+        </div>
       </div>
     </section>
 
-    <!-- Shop -->
-    <section class="section" id="shop">
+    <!-- Featured products -->
+    <section class="section" id="featured">
       <div class="container">
         <div class="sectionHead">
-          <h2 class="h2">Shop Spices</h2>
-          <p class="muted">Select size and quantity — add to cart. Prices can be updated anytime in <b>script.js</b>.</p>
+          <h2>Featured Products</h2>
+          <p class="muted">Shop our most popular packs. (Update prices in <b>script.js</b>.)</p>
         </div>
 
         <div class="productGrid" id="productGrid"></div>
       </div>
     </section>
 
-    <!-- How it works -->
-    <section class="section section--alt" id="how">
+    <!-- Collections (simple) -->
+    <section class="section section--alt" id="collections">
       <div class="container">
         <div class="sectionHead">
-          <h2 class="h2">How it works</h2>
-          <p class="muted">Simple process — order in 2 minutes.</p>
+          <h2>Collections</h2>
+          <p class="muted">Simple categories (you can add more later).</p>
         </div>
 
-        <div class="steps">
-          <div class="step">
-            <div class="step__num">1</div>
-            <div>
-              <div class="step__title">Add products to cart</div>
-              <div class="muted">Choose size and quantity.</div>
+        <div class="collectionGrid">
+          <a class="collectionCard" href="#featured">
+            <div class="collectionArt art--chilli"></div>
+            <div class="collectionText">
+              <div class="collectionTitle">Chilli Powders</div>
+              <div class="muted small">Rich colour • Strong flavour</div>
             </div>
-          </div>
-          <div class="step">
-            <div class="step__num">2</div>
-            <div>
-              <div class="step__title">Enter delivery details</div>
-              <div class="muted">We calculate shipping by weight + zone.</div>
+          </a>
+
+          <a class="collectionCard" href="#featured">
+            <div class="collectionArt art--turmeric"></div>
+            <div class="collectionText">
+              <div class="collectionTitle">Turmeric Powders</div>
+              <div class="muted small">Daily cooking essential</div>
             </div>
-          </div>
-          <div class="step">
-            <div class="step__num">3</div>
-            <div>
-              <div class="step__title">Pay with UPI & place order</div>
-              <div class="muted">Enter UPI reference (UTR) and submit.</div>
+          </a>
+
+          <a class="collectionCard" href="#checkout">
+            <div class="collectionArt art--combo"></div>
+            <div class="collectionText">
+              <div class="collectionTitle">Bulk / Combo Orders</div>
+              <div class="muted small">Contact us during checkout notes</div>
             </div>
-          </div>
+          </a>
         </div>
       </div>
     </section>
@@ -160,29 +163,41 @@
     <section class="section" id="shipping">
       <div class="container">
         <div class="sectionHead">
-          <h2 class="h2">Shipping calculation</h2>
-          <p class="muted">Shipping depends on your state (zone) + total cart weight.</p>
+          <h2>Shipping (Weight + Zone)</h2>
+          <p class="muted">Distance is handled using state-based zones (simple + low budget).</p>
         </div>
 
-        <div class="infoCard">
-          <div class="infoRow">
-            <div class="infoTitle">Zone A (Nearby)</div>
-            <div class="muted">AP, TS, KA, TN, KL</div>
-          </div>
-          <div class="infoRow">
-            <div class="infoTitle">Zone B (Mid)</div>
-            <div class="muted">MH, GA, GJ, MP, CG, OD</div>
-          </div>
-          <div class="infoRow">
-            <div class="infoTitle">Zone C (Far)</div>
-            <div class="muted">Rest of India</div>
+        <div class="shipGrid">
+          <div class="shipCard">
+            <div class="shipTitle">Zone A (Nearby)</div>
+            <div class="muted small">AP, TS, KA, TN, KL</div>
+            <div class="divider"></div>
+            <div class="shipRow"><span>0–250g</span><b id="shipA1">₹49</b></div>
+            <div class="shipRow"><span>251–500g</span><b id="shipA2">₹69</b></div>
+            <div class="shipRow"><span>501g–1kg</span><b id="shipA3">₹99</b></div>
           </div>
 
-          <div class="divider"></div>
+          <div class="shipCard">
+            <div class="shipTitle">Zone B (Mid)</div>
+            <div class="muted small">MH, GA, GJ, MP, CG, OD</div>
+            <div class="divider"></div>
+            <div class="shipRow"><span>0–250g</span><b id="shipB1">₹59</b></div>
+            <div class="shipRow"><span>251–500g</span><b id="shipB2">₹79</b></div>
+            <div class="shipRow"><span>501g–1kg</span><b id="shipB3">₹119</b></div>
+          </div>
 
-          <p class="muted small">
-            Shipping table values can be updated easily in <b>script.js</b> (no design changes required).
-          </p>
+          <div class="shipCard">
+            <div class="shipTitle">Zone C (Far)</div>
+            <div class="muted small">Rest of India</div>
+            <div class="divider"></div>
+            <div class="shipRow"><span>0–250g</span><b id="shipC1">₹69</b></div>
+            <div class="shipRow"><span>251–500g</span><b id="shipC2">₹99</b></div>
+            <div class="shipRow"><span>501g–1kg</span><b id="shipC3">₹149</b></div>
+          </div>
+        </div>
+
+        <div class="noteBox">
+          <strong>Note:</strong> You can change zone states and shipping values in <b>script.js</b> anytime.
         </div>
       </div>
     </section>
@@ -192,29 +207,25 @@
       <div class="container checkout">
         <div class="checkout__left">
           <div class="sectionHead">
-            <h2 class="h2">Checkout</h2>
-            <p class="muted">Fill delivery details. Review totals. Pay by UPI and place order.</p>
+            <h2>Checkout</h2>
+            <p class="muted">Review totals, enter address, pay via UPI and place order.</p>
           </div>
 
           <div class="summaryCard">
-            <div class="summaryRow"><span class="muted">Items</span><b id="sumItems">0</b></div>
-            <div class="summaryRow"><span class="muted">Subtotal</span><b id="sumSubtotal">₹0</b></div>
-            <div class="summaryRow"><span class="muted">Shipping</span><b id="sumShipping">₹0</b></div>
-            <div class="summaryRow summaryRow--total"><span>Total</span><b id="sumTotal">₹0</b></div>
-            <p class="muted small">Shipping updates based on <b>State</b> and total cart weight.</p>
-
+            <div class="sumRow"><span class="muted">Items</span><b id="sumItems">0</b></div>
+            <div class="sumRow"><span class="muted">Subtotal</span><b id="sumSubtotal">₹0</b></div>
+            <div class="sumRow"><span class="muted">Shipping</span><b id="sumShipping">₹0</b></div>
+            <div class="sumRow sumRow--total"><span>Total</span><b id="sumTotal">₹0</b></div>
+            <p class="muted small" style="margin:10px 0 0;">Shipping updates based on <b>State</b> and total cart weight.</p>
             <button class="btn btn--ghost btn--full" id="openCartBtn3" type="button">Edit cart</button>
           </div>
 
           <div class="upiCard">
-            <div class="upiTitle">UPI Payment (Initial)</div>
-            <p class="muted small">
-              Add your UPI ID and QR later. For now, the customer pays using your UPI and enters the UTR/reference below.
-            </p>
-
+            <div class="upiTitle">UPI Payment</div>
+            <p class="muted small">Customer pays to your UPI ID, then enters reference/UTR below.</p>
             <div class="upiBox">
               <div><span class="muted">UPI ID:</span> <b id="upiIdText">yourupi@upi</b></div>
-              <div class="muted small">After payment, enter UPI reference/UTR in the form.</div>
+              <div class="muted small">Add QR image later (optional).</div>
             </div>
           </div>
         </div>
@@ -234,6 +245,11 @@
           <div class="field">
             <label for="phone">Phone</label>
             <input id="phone" required placeholder="10-digit mobile number" inputmode="numeric" />
+          </div>
+
+          <div class="field">
+            <label for="pincode">Pincode</label>
+            <input id="pincode" required placeholder="6-digit pincode" inputmode="numeric" />
           </div>
 
           <div class="field">
@@ -257,44 +273,37 @@
             </div>
           </div>
 
-          <div class="grid2">
-            <div class="field">
-              <label for="state">State</label>
-              <select id="state" required>
-                <option value="" selected disabled>Select state</option>
-                <option>Andhra Pradesh</option>
-                <option>Telangana</option>
-                <option>Karnataka</option>
-                <option>Tamil Nadu</option>
-                <option>Kerala</option>
-                <option>Maharashtra</option>
-                <option>Goa</option>
-                <option>Gujarat</option>
-                <option>Madhya Pradesh</option>
-                <option>Chhattisgarh</option>
-                <option>Odisha</option>
-                <option>West Bengal</option>
-                <option>Uttar Pradesh</option>
-                <option>Bihar</option>
-                <option>Rajasthan</option>
-                <option>Delhi</option>
-                <option>Haryana</option>
-                <option>Punjab</option>
-                <option>Uttarakhand</option>
-                <option>Himachal Pradesh</option>
-                <option>Assam</option>
-                <option>Jharkhand</option>
-                <option>Jammu & Kashmir</option>
-                <option>Ladakh</option>
-                <option>Other</option>
-              </select>
-              <div class="muted small">Used for zone-based shipping.</div>
-            </div>
-
-            <div class="field">
-              <label for="pincode">Pincode</label>
-              <input id="pincode" required placeholder="6-digit pincode" inputmode="numeric" />
-            </div>
+          <div class="field">
+            <label for="state">State</label>
+            <select id="state" required>
+              <option value="" selected disabled>Select state</option>
+              <option>Andhra Pradesh</option>
+              <option>Telangana</option>
+              <option>Karnataka</option>
+              <option>Tamil Nadu</option>
+              <option>Kerala</option>
+              <option>Maharashtra</option>
+              <option>Goa</option>
+              <option>Gujarat</option>
+              <option>Madhya Pradesh</option>
+              <option>Chhattisgarh</option>
+              <option>Odisha</option>
+              <option>West Bengal</option>
+              <option>Uttar Pradesh</option>
+              <option>Bihar</option>
+              <option>Rajasthan</option>
+              <option>Delhi</option>
+              <option>Haryana</option>
+              <option>Punjab</option>
+              <option>Uttarakhand</option>
+              <option>Himachal Pradesh</option>
+              <option>Assam</option>
+              <option>Jharkhand</option>
+              <option>Jammu & Kashmir</option>
+              <option>Ladakh</option>
+              <option>Other</option>
+            </select>
+            <div class="muted small">Used for zone-based shipping.</div>
           </div>
 
           <div class="field">
@@ -302,22 +311,39 @@
             <input id="upiRef" required placeholder="Transaction reference (UTR)" />
           </div>
 
-          <button class="btn btn--primary btn--full" type="submit">Place Order</button>
+          <div class="field">
+            <label for="notes">Order notes (optional)</label>
+            <input id="notes" placeholder="e.g., bulk order, gift packing request" />
+          </div>
 
-          <p class="muted small">
-            By placing the order, you confirm the delivery address and payment reference.
-          </p>
+          <button class="btn btn--primary btn--full" type="submit">Place Order</button>
+          <p class="muted small">Order will be saved in Sai Spices order sheet.</p>
 
           <div class="success" id="successBox" role="status" aria-live="polite">
             ✅ Order placed! Your order ID is <b id="orderIdOut"></b>. We will contact you soon.
           </div>
-
           <div class="error" id="errorBox" role="alert">
             ❌ Please add products to cart before placing an order.
           </div>
         </form>
       </div>
     </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container footer__inner">
+        <div>
+          <div class="footer__brand">Sai Spices</div>
+          <div class="muted small">Guntur, Andhra Pradesh • All-India delivery</div>
+        </div>
+        <div class="footer__links">
+          <a href="#featured">Shop</a>
+          <a href="#shipping">Shipping</a>
+          <a href="#checkout">Checkout</a>
+        </div>
+        <div class="footer__copy muted small">© <span id="year"></span> Sai Spices</div>
+      </div>
+    </footer>
   </main>
 
   <!-- Cart Drawer -->
@@ -337,9 +363,9 @@
         <div class="divider"></div>
 
         <div class="drawerTotals">
-          <div class="summaryRow"><span class="muted">Subtotal</span><b id="cartSubtotal">₹0</b></div>
-          <div class="summaryRow"><span class="muted">Estimated shipping</span><b id="cartShip">₹0</b></div>
-          <div class="summaryRow summaryRow--total"><span>Total</span><b id="cartTotal">₹0</b></div>
+          <div class="sumRow"><span class="muted">Subtotal</span><b id="cartSubtotal">₹0</b></div>
+          <div class="sumRow"><span class="muted">Estimated shipping</span><b id="cartShip">₹0</b></div>
+          <div class="sumRow sumRow--total"><span>Total</span><b id="cartTotal">₹0</b></div>
           <p class="muted small">Final shipping depends on State (zone) at checkout.</p>
         </div>
       </div>
@@ -355,7 +381,7 @@
   <!-- Mobile Sticky -->
   <div class="stickyBar">
     <button class="stickyBtn stickyBtn--primary" id="stickyCartBtn" type="button">
-      Cart <span class="cartDot" id="cartCount2">0</span>
+      Cart <span class="pillCount" id="cartCount2">0</span>
     </button>
     <a class="stickyBtn" href="#checkout">Checkout</a>
   </div>
