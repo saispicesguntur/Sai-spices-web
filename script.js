@@ -1,107 +1,105 @@
 /* =========================
-   Sai Spices Shop (Simple)
-   ========================= */
+   CONFIG (edit these)
+========================= */
 
-const ORDER_ENDPOINT = "https://script.google.com/macros/s/AKfycbzjCjfHAvncaUBKhnn97Mww34dKCdQc1Gqx6dyxklMhwfYrWROhlM_St3u5uHlQoXv20A/exec"; 
-// Example format:
-// https://script.google.com/macros/s/XXXXX/exec
+// Your business UPI ID (payee). Replace this:
+const PAYEE_UPI = "saipices@upi";  // <-- CHANGE THIS to real UPI ID
+
+// Optional: Google Apps Script URL (your sheet web app)
+// If you want to save orders in Google Sheet, keep it.
+// If you don't want it, leave as empty string "".
+const SHEETS_WEBAPP_URL =
+  "https://script.google.com/macros/s/AKfycbzjCjfHAvncaUBKhnn97Mww34dKCdQc1Gqx6dyxklMhwfYrWROhlM_St3u5uHlQoXv20A/exec";
+
+/* =========================
+   PRODUCTS
+========================= */
 
 const PRODUCTS = [
   {
     id: "chilli",
-    tag: "Best seller",
     name: "Red Chilli Powder",
-    desc: "Freshly ground chilli powder.",
+    note: "Bright colour • strong flavour",
     variants: [
-      { label: "100g", price: 65 },
-      { label: "200g", price: 119 },
-      { label: "500g", price: 189 },
-      { label: "1kg",  price: 289 },
-    ],
+      { label: "100 g", price: 65 },
+      { label: "200 g", price: 119 },
+      { label: "500 g", price: 189 },
+      { label: "1 kg", price: 289 }
+    ]
   },
   {
     id: "turmeric",
-    tag: "Daily use",
     name: "Turmeric Powder",
-    desc: "Pure turmeric, bright colour.",
+    note: "Pure & aromatic",
     variants: [
-      { label: "50g",  price: 29 },
-      { label: "100g", price: 59 },
-    ],
+      { label: "50 g", price: 29 },
+      { label: "100 g", price: 59 }
+    ]
   },
   {
     id: "jeera",
-    tag: "Homemade",
-    name: "Jeera Powder",
-    desc: "Home made jeera powder.",
+    name: "Homemade Jeera Powder",
+    note: "Fresh roasted • homemade",
     variants: [
-      { label: "50g",  price: 25 },
-      { label: "100g", price: 49 },
-      { label: "250g", price: 79 },
-    ],
+      { label: "50 g", price: 25 },
+      { label: "100 g", price: 49 },
+      { label: "250 g", price: 79 }
+    ]
   },
   {
     id: "garam",
-    tag: "Homemade",
-    name: "Garam Masala",
-    desc: "Home made garam masala blend.",
+    name: "Homemade Garam Masala",
+    note: "Balanced blend • homemade",
     variants: [
-      { label: "50g",  price: 29 },
-      { label: "100g", price: 59 },
-      { label: "150g", price: 89 },
-    ],
-  },
+      { label: "50 g", price: 29 },
+      { label: "100 g", price: 59 },
+      { label: "150 g", price: 89 }
+    ]
+  }
 ];
 
-// cart item shape: { productId, name, variantLabel, unitPrice, qty }
-let cart = [];
+const formatINR = (n) => `₹${Number(n).toLocaleString("en-IN")}`;
 
-/* ---------- Helpers ---------- */
-const ₹ = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+/* =========================
+   STATE
+========================= */
 
-function findProduct(productId) {
-  return PRODUCTS.find(p => p.id === productId);
-}
+let cart = []; // [{key, productId, productName, variantLabel, unitPrice, qty}]
+const $ = (id) => document.getElementById(id);
 
-function cartKey(productId, variantLabel) {
-  return `${productId}__${variantLabel}`;
-}
+/* =========================
+   RENDER PRODUCTS
+========================= */
 
-function getSubtotal() {
-  return cart.reduce((sum, it) => sum + it.unitPrice * it.qty, 0);
-}
-
-/* ---------- Render Products ---------- */
 function renderProducts() {
-  const grid = document.getElementById("productGrid");
+  const grid = $("productsGrid");
   grid.innerHTML = "";
 
-  PRODUCTS.forEach(p => {
+  PRODUCTS.forEach((p) => {
     const card = document.createElement("div");
-    card.className = "productCard";
+    card.className = "card";
+
+    const selectId = `sel_${p.id}`;
+    const qtyId = `qty_${p.id}`;
 
     card.innerHTML = `
-      <div class="tag">${p.tag}</div>
-      <div class="productTitle">${p.name}</div>
-      <p class="productDesc">${p.desc}</p>
+      <h3>${p.name}</h3>
+      <p>${p.note}</p>
 
       <div class="selectRow">
-        <label class="small muted">Select size</label>
-        <select data-product="${p.id}" class="variantSelect">
-          ${p.variants.map(v => `<option value="${v.label}" data-price="${v.price}">${v.label} — ${₹(v.price)}</option>`).join("")}
+        <select id="${selectId}">
+          ${p.variants
+            .map(
+              (v, idx) =>
+                `<option value="${idx}">${v.label} — ${formatINR(v.price)}</option>`
+            )
+            .join("")}
         </select>
+
+        <input id="${qtyId}" type="number" min="1" value="1" />
       </div>
 
-      <div class="priceRow">
-        <div class="price" id="price_${p.id}">${₹(p.variants[0].price)}</div>
-        <div class="qtyCtrl">
-          <button class="qbtn" type="button" data-action="dec" data-product="${p.id}">−</button>
-          <div class="qval" id="qty_${p.id}">1</div>
-          <button class="qbtn" type="button" data-action="inc" data-product="${p.id}">+</button>
-        </div>
-      </div>
-
-      <button class="btn btn--primary btn--full" type="button" data-action="add" data-product="${p.id}">
+      <button class="btn btn--primary btn--full" data-add="${p.id}">
         Add to cart
       </button>
     `;
@@ -109,241 +107,320 @@ function renderProducts() {
     grid.appendChild(card);
   });
 
-  // Update price when variant changes
-  document.querySelectorAll(".variantSelect").forEach(sel => {
-    sel.addEventListener("change", (e) => {
-      const productId = e.target.getAttribute("data-product");
-      const opt = e.target.selectedOptions[0];
-      const price = opt.getAttribute("data-price");
-      document.getElementById(`price_${productId}`).textContent = ₹(price);
-    });
-  });
-
-  // Qty controls + Add
   grid.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-action]");
+    const btn = e.target.closest("[data-add]");
     if (!btn) return;
-
-    const action = btn.getAttribute("data-action");
-    const productId = btn.getAttribute("data-product");
-    const qtyEl = document.getElementById(`qty_${productId}`);
-    let qty = Number(qtyEl.textContent || 1);
-
-    if (action === "inc") qtyEl.textContent = String(qty + 1);
-    if (action === "dec") qtyEl.textContent = String(Math.max(1, qty - 1));
-
-    if (action === "add") {
-      const select = document.querySelector(`select[data-product="${productId}"]`);
-      const opt = select.selectedOptions[0];
-      const variantLabel = opt.value;
-      const unitPrice = Number(opt.getAttribute("data-price"));
-      const finalQty = Number(qtyEl.textContent || 1);
-
-      addToCart(productId, variantLabel, unitPrice, finalQty);
-      qtyEl.textContent = "1";
-      openCart();
-    }
+    const productId = btn.getAttribute("data-add");
+    addToCart(productId);
   });
 }
 
-/* ---------- Cart Operations ---------- */
-function addToCart(productId, variantLabel, unitPrice, qty) {
-  const product = findProduct(productId);
+/* =========================
+   CART
+========================= */
+
+function addToCart(productId) {
+  const product = PRODUCTS.find((x) => x.id === productId);
   if (!product) return;
 
-  const key = cartKey(productId, variantLabel);
-  const existing = cart.find(it => it.key === key);
+  const sel = $(`sel_${productId}`);
+  const qtyInput = $(`qty_${productId}`);
 
-  if (existing) {
-    existing.qty += qty;
-  } else {
+  const vIndex = Number(sel.value);
+  const variant = product.variants[vIndex];
+
+  const qty = Math.max(1, Number(qtyInput.value || 1));
+  const key = `${productId}_${variant.label}`;
+
+  const existing = cart.find((x) => x.key === key);
+  if (existing) existing.qty += qty;
+  else {
     cart.push({
       key,
       productId,
-      name: product.name,
-      variantLabel,
-      unitPrice,
+      productName: product.name,
+      variantLabel: variant.label,
+      unitPrice: variant.price,
       qty
     });
   }
-  updateCartUI();
-}
 
-function removeFromCart(key) {
-  cart = cart.filter(it => it.key !== key);
   updateCartUI();
+  openCart();
 }
 
 function changeQty(key, delta) {
-  const item = cart.find(it => it.key === key);
+  const item = cart.find((x) => x.key === key);
   if (!item) return;
-  item.qty = Math.max(1, item.qty + delta);
+  item.qty += delta;
+  if (item.qty <= 0) cart = cart.filter((x) => x.key !== key);
   updateCartUI();
 }
 
-/* ---------- Render Cart ---------- */
-function renderCart() {
-  const wrap = document.getElementById("cartItems");
+function removeItem(key) {
+  cart = cart.filter((x) => x.key !== key);
+  updateCartUI();
+}
 
-  if (cart.length === 0) {
-    wrap.innerHTML = `
-      <div class="cartItem">
-        <div class="muted">Your cart is empty. Add products from the shop.</div>
-      </div>
-    `;
-  } else {
-    wrap.innerHTML = cart.map(it => `
-      <div class="cartItem">
-        <div class="cartItemTop">
-          <div>
-            <div class="cartItemName">${it.name}</div>
-            <div class="cartItemMeta">${it.variantLabel} • ${₹(it.unitPrice)} each</div>
-          </div>
-          <button class="iconBtn" type="button" data-remove="${it.key}" title="Remove">🗑</button>
-        </div>
-
-        <div class="cartItemBottom">
-          <div class="qtyCtrl">
-            <button class="qbtn" type="button" data-qty="${it.key}" data-delta="-1">−</button>
-            <div class="qval">${it.qty}</div>
-            <button class="qbtn" type="button" data-qty="${it.key}" data-delta="1">+</button>
-          </div>
-
-          <strong>${₹(it.unitPrice * it.qty)}</strong>
-        </div>
-      </div>
-    `).join("");
-  }
-
-  document.getElementById("cartSubtotal").textContent = ₹(getSubtotal());
+function getTotals() {
+  const subtotal = cart.reduce((sum, x) => sum + x.unitPrice * x.qty, 0);
+  const total = subtotal; // keep simple: no delivery calc now
+  const itemsCount = cart.reduce((sum, x) => sum + x.qty, 0);
+  return { subtotal, total, itemsCount };
 }
 
 function updateCartUI() {
-  document.getElementById("cartCount").textContent = String(
-    cart.reduce((sum, it) => sum + it.qty, 0)
-  );
-  renderCart();
+  const { subtotal, total, itemsCount } = getTotals();
+
+  $("cartCount").textContent = String(itemsCount);
+  $("cartSub").textContent = `${itemsCount} item${itemsCount === 1 ? "" : "s"}`;
+  $("subtotal").textContent = formatINR(subtotal);
+  $("total").textContent = formatINR(total);
+
+  const wrap = $("cartItems");
+  wrap.innerHTML = "";
+
+  if (cart.length === 0) {
+    wrap.innerHTML = `<div class="muted">Your cart is empty.</div>`;
+    return;
+  }
+
+  cart.forEach((x) => {
+    const div = document.createElement("div");
+    div.className = "cartItem";
+    div.innerHTML = `
+      <div class="cartItem__top">
+        <div>
+          <div class="cartItem__name">${x.productName}</div>
+          <div class="cartItem__meta">${x.variantLabel} • ${formatINR(x.unitPrice)} each</div>
+        </div>
+        <div><strong>${formatINR(x.unitPrice * x.qty)}</strong></div>
+      </div>
+
+      <div class="cartItem__actions">
+        <button class="qtyBtn" data-dec="${x.key}">−</button>
+        <button class="qtyBtn" data-inc="${x.key}">+</button>
+        <button class="qtyBtn removeBtn" data-rm="${x.key}">Remove</button>
+      </div>
+    `;
+    wrap.appendChild(div);
+  });
 }
 
-/* ---------- Drawer Open/Close ---------- */
-const cartDrawer = document.getElementById("cartDrawer");
-const openCartBtn = document.getElementById("openCartBtn");
-const closeCartBtn = document.getElementById("closeCartBtn");
-const cartOverlay = document.getElementById("cartOverlay");
-const heroOpenCart = document.getElementById("heroOpenCart");
+/* =========================
+   DRAWER OPEN/CLOSE
+========================= */
 
 function openCart() {
-  cartDrawer.classList.add("isOpen");
-  cartDrawer.setAttribute("aria-hidden", "false");
+  $("drawer").classList.add("open");
+  $("drawer").setAttribute("aria-hidden", "false");
 }
 
 function closeCart() {
-  cartDrawer.classList.remove("isOpen");
-  cartDrawer.setAttribute("aria-hidden", "true");
+  $("drawer").classList.remove("open");
+  $("drawer").setAttribute("aria-hidden", "true");
 }
 
-openCartBtn.addEventListener("click", openCart);
-closeCartBtn.addEventListener("click", closeCart);
-cartOverlay.addEventListener("click", closeCart);
-heroOpenCart.addEventListener("click", openCart);
+/* =========================
+   PAYMENT UI
+========================= */
 
-// cart item events (remove / qty)
-document.getElementById("cartItems").addEventListener("click", (e) => {
-  const removeBtn = e.target.closest("[data-remove]");
-  if (removeBtn) {
-    removeFromCart(removeBtn.getAttribute("data-remove"));
-    return;
-  }
+function syncPaymentUI() {
+  const method = $("payMethod").value;
+  $("upiBox").classList.toggle("hidden", method !== "UPI");
+  $("cardBox").classList.toggle("hidden", method !== "CARD");
+}
 
-  const qtyBtn = e.target.closest("[data-qty]");
-  if (qtyBtn) {
-    const key = qtyBtn.getAttribute("data-qty");
-    const delta = Number(qtyBtn.getAttribute("data-delta"));
-    changeQty(key, delta);
-  }
-});
+/* =========================
+   VALIDATION + ORDER
+========================= */
 
-/* ---------- Checkout Submit ---------- */
-const checkoutForm = document.getElementById("checkoutForm");
-const successMsg = document.getElementById("successMsg");
-const errorMsg = document.getElementById("errorMsg");
-const placeOrderBtn = document.getElementById("placeOrderBtn");
+function makeOrderId() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `SS-${y}${m}${day}-${rand}`;
+}
 
-checkoutForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  successMsg.style.display = "none";
-  errorMsg.style.display = "none";
+function showError(msg) {
+  $("errorBox").textContent = msg || "";
+}
 
-  if (cart.length === 0) {
-    alert("Your cart is empty. Please add products first.");
-    return;
-  }
-
-  if (!ORDER_ENDPOINT || ORDER_ENDPOINT.includes("PASTE_YOUR")) {
-    alert("ORDER_ENDPOINT is not set. Please paste your Google Apps Script URL in script.js");
-    return;
-  }
-
-  const formData = new FormData(checkoutForm);
-  const payload = {
-    timestamp: new Date().toISOString(),
-    deliveryRegion: "AP & TG only",
-    customer: {
-      name: formData.get("name")?.trim(),
-      phone: formData.get("phone")?.trim(),
-      email: formData.get("email")?.trim() || "",
-      address: formData.get("address")?.trim(),
-      city: formData.get("city")?.trim(),
-      pincode: formData.get("pincode")?.trim(),
-      notes: formData.get("notes")?.trim() || ""
-    },
-    items: cart.map(it => ({
-      product: it.name,
-      size: it.variantLabel,
-      unitPrice: it.unitPrice,
-      qty: it.qty,
-      lineTotal: it.unitPrice * it.qty
-    })),
-    subtotal: getSubtotal()
+function getCheckoutData() {
+  return {
+    name: $("custName").value.trim(),
+    phone: $("custPhone").value.trim(),
+    state: $("custState").value,
+    address: $("custAddress").value.trim(),
+    payMethod: $("payMethod").value,
+    payerUpi: $("payerUpi").value.trim(),
+    cardName: $("cardName").value.trim(),
+    cardLast4: $("cardLast4").value.trim()
   };
+}
 
-  // basic phone check
-  if (!/^\d{10}$/.test(payload.customer.phone || "")) {
-    alert("Please enter a valid 10-digit mobile number.");
-    return;
+function validateCheckout() {
+  if (cart.length === 0) return "Cart is empty. Add at least one product.";
+  const d = getCheckoutData();
+
+  if (!d.name) return "Please enter your full name.";
+  if (!d.phone || d.phone.length < 8) return "Please enter a valid phone number.";
+  if (!d.state) return "Please select delivery state (AP or TG).";
+  if (!d.address || d.address.length < 10) return "Please enter your full address.";
+
+  if (d.payMethod === "CARD") {
+    if (!d.cardName) return "Enter cardholder name (demo).";
+    if (!/^\d{4}$/.test(d.cardLast4)) return "Enter last 4 digits (demo).";
   }
 
-  placeOrderBtn.disabled = true;
-  placeOrderBtn.textContent = "Sending…";
+  return "";
+}
 
+function buildUpiLink(orderId, totalAmount) {
+  // UPI deep link (works best on mobile)
+  const params = new URLSearchParams({
+    pa: PAYEE_UPI,
+    pn: "Sai Spices",
+    am: totalAmount.toFixed(2),
+    cu: "INR",
+    tn: `Sai Spices Order ${orderId}`
+  });
+  return `upi://pay?${params.toString()}`;
+}
+
+async function sendToSheet(order) {
+  if (!SHEETS_WEBAPP_URL) return;
+
+  // Simple POST as JSON
   try {
-    // Try JSON POST
-    const res = await fetch(ORDER_ENDPOINT, {
+    await fetch(SHEETS_WEBAPP_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      mode: "no-cors" // Apps Script often needs this on GitHub Pages
+      body: JSON.stringify(order)
     });
-
-    // With no-cors, we can’t read response reliably. Assume success if no error thrown.
-    successMsg.style.display = "block";
-    errorMsg.style.display = "none";
-
-    // reset
-    cart = [];
-    updateCartUI();
-    checkoutForm.reset();
-
-  } catch (err) {
-    console.error(err);
-    errorMsg.style.display = "block";
-  } finally {
-    placeOrderBtn.disabled = false;
-    placeOrderBtn.textContent = "Place order";
+  } catch (e) {
+    // Don’t block success if sheet fails
+    console.warn("Sheet save failed:", e);
   }
-});
+}
 
-/* ---------- Init ---------- */
-document.getElementById("year").textContent = new Date().getFullYear();
+function showSuccess(orderId) {
+  const { total } = getTotals();
+  $("orderIdText").textContent = orderId;
+
+  const lines = cart
+    .map((x) => `${x.productName} (${x.variantLabel}) x${x.qty}`)
+    .join(" • ");
+
+  $("orderSummaryText").textContent = `Total: ${formatINR(total)} • ${lines}`;
+
+  $("successModal").classList.remove("hidden");
+}
+
+function resetAll() {
+  cart = [];
+  updateCartUI();
+  closeCart();
+  showError("");
+  $("custName").value = "";
+  $("custPhone").value = "";
+  $("custState").value = "";
+  $("custAddress").value = "";
+  $("payerUpi").value = "";
+  $("cardName").value = "";
+  $("cardLast4").value = "";
+  $("payMethod").value = "UPI";
+  syncPaymentUI();
+}
+
+/* =========================
+   EVENTS
+========================= */
+
+function bindEvents() {
+  $("openCartBtn").addEventListener("click", openCart);
+  $("closeCartBtn").addEventListener("click", closeCart);
+  $("drawerBackdrop").addEventListener("click", closeCart);
+
+  $("cartItems").addEventListener("click", (e) => {
+    const inc = e.target.closest("[data-inc]");
+    const dec = e.target.closest("[data-dec]");
+    const rm = e.target.closest("[data-rm]");
+
+    if (inc) return changeQty(inc.getAttribute("data-inc"), +1);
+    if (dec) return changeQty(dec.getAttribute("data-dec"), -1);
+    if (rm) return removeItem(rm.getAttribute("data-rm"));
+  });
+
+  $("payMethod").addEventListener("change", syncPaymentUI);
+
+  $("placeOrderBtn").addEventListener("click", async () => {
+    showError("");
+    const err = validateCheckout();
+    if (err) {
+      showError(err);
+      return;
+    }
+
+    const orderId = makeOrderId();
+    const { subtotal, total } = getTotals();
+    const d = getCheckoutData();
+
+    const order = {
+      orderId,
+      createdAt: new Date().toISOString(),
+      customer: {
+        name: d.name,
+        phone: d.phone,
+        state: d.state,
+        address: d.address
+      },
+      payment: {
+        method: d.payMethod,
+        payerUpi: d.payerUpi || "",
+        cardDemo: d.payMethod === "CARD" ? { cardName: d.cardName, last4: d.cardLast4 } : null
+      },
+      items: cart.map((x) => ({
+        name: x.productName,
+        variant: x.variantLabel,
+        unitPrice: x.unitPrice,
+        qty: x.qty,
+        lineTotal: x.unitPrice * x.qty
+      })),
+      subtotal,
+      total
+    };
+
+    // If UPI selected, open UPI link (mobile best). Then still place order.
+    if (d.payMethod === "UPI") {
+      const link = buildUpiLink(orderId, total);
+      window.open(link, "_blank");
+    }
+
+    await sendToSheet(order);
+    showSuccess(orderId);
+  });
+
+  // Success modal events
+  $("successBackdrop").addEventListener("click", () => {
+    $("successModal").classList.add("hidden");
+  });
+  $("closeSuccessBtn").addEventListener("click", () => {
+    $("successModal").classList.add("hidden");
+  });
+  $("newOrderBtn").addEventListener("click", () => {
+    $("successModal").classList.add("hidden");
+    resetAll();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+}
+
+/* =========================
+   INIT
+========================= */
 renderProducts();
 updateCartUI();
+bindEvents();
+syncPaymentUI();
