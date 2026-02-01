@@ -321,3 +321,67 @@ input:focus,select:focus{
   .checkoutGrid{grid-template-columns:1fr}
   .checkoutCard + .checkoutCard{border-left:none; border-top:1px solid var(--line)}
 }
+/* === FIX: Drawer + Modal show/hide (required for Checkout popup) === */
+
+.drawer,
+.modal{
+  position: fixed;
+  inset: 0;
+  display: none;              /* hidden by default */
+  z-index: 9999;              /* bring above everything */
+}
+
+.drawer.show,
+.modal.show{
+  display: block;             /* visible when .show added by JS */
+}
+
+/* Drawer */
+.drawer__backdrop{
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.55);
+}
+
+.drawer__panel{
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(420px, 92vw);
+  background: #fff;
+  border-left: 1px solid rgba(15,23,42,.12);
+  box-shadow: -24px 0 60px rgba(2,6,23,.25);
+  padding: 16px;
+  overflow: auto;
+  border-top-left-radius: 18px;
+  border-bottom-left-radius: 18px;
+}
+
+/* Modal */
+.modal__backdrop{
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.55);
+}
+
+.modal__panel{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(980px, 92vw);
+  max-height: 88vh;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid rgba(15,23,42,.12);
+  box-shadow: 0 30px 90px rgba(2,6,23,.30);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.modal__panel--small{
+  width: min(520px, 92vw);
+}
+
+
