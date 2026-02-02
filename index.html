@@ -20,22 +20,22 @@
 
       <div class="nav__actions">
         <a class="btn btn--ghost" href="tel:+919014140536">Call</a>
-        <button class="btn btn--primary" id="openCartBtn" type="button">
+        <button class="btn btn--primary" id="openCartBtn">
           Cart (<span id="cartCount">0</span>)
         </button>
       </div>
     </div>
   </header>
 
+  <!-- Hero -->
   <main>
-    <!-- Hero -->
     <section class="hero">
       <div class="container hero__grid">
         <div>
           <div class="pill">Delivery: Andhra Pradesh & Telangana (initially)</div>
           <h1>Order authentic homemade spices in minutes.</h1>
           <p class="lead">
-            Select products → open cart → checkout → pay via UPI (manual) → upload screenshot.
+            Select products → open cart → checkout → enter delivery → make payment (UPI manual) → upload screenshot → finish order.
           </p>
 
           <div class="trust">
@@ -52,14 +52,13 @@
 
         <aside class="card">
           <div class="card__top">
-            <div class="badge">Simple checkout</div>
+            <div class="badge">Quick checkout</div>
             <div class="mini">Order ID generated</div>
           </div>
-
           <div class="steps">
-            <div class="step"><span>1</span> Add items to cart</div>
+            <div class="step"><span>1</span> Select products + sizes</div>
             <div class="step"><span>2</span> Enter delivery details</div>
-            <div class="step"><span>3</span> Upload UPI payment screenshot</div>
+            <div class="step"><span>3</span> Pay via UPI + upload screenshot</div>
           </div>
         </aside>
       </div>
@@ -69,7 +68,10 @@
     <section class="section">
       <div class="container">
         <h2>Products</h2>
-        <p class="muted">Select size + quantity, then add to cart (cart will NOT open automatically).</p>
+        <p class="muted">
+          Select size + quantity, then add to cart (cart will NOT open automatically).
+        </p>
+
         <div class="products" id="productsGrid"></div>
       </div>
     </section>
@@ -80,7 +82,7 @@
         <div>
           <div class="footer__brand">Sai Spices</div>
           <p class="muted small">
-            Homemade spice powders from Guntur, Andhra Pradesh.<br />
+            Homemade spice powders from Guntur, Andhra Pradesh.
             Delivery available in Andhra Pradesh & Telangana (initially).
           </p>
         </div>
@@ -100,13 +102,13 @@
 
   <!-- Cart Drawer -->
   <div class="drawer" id="cartDrawer" aria-hidden="true">
-    <div class="drawer__panel" role="dialog" aria-label="Cart">
+    <div class="drawer__panel">
       <div class="drawer__top">
         <div>
           <div class="drawer__title">Your Cart</div>
           <div class="muted small" id="cartSub">0 items</div>
         </div>
-        <button class="iconBtn" id="closeCartBtn" type="button" aria-label="Close cart">✕</button>
+        <button class="iconBtn" id="closeCartBtn" aria-label="Close cart">✕</button>
       </div>
 
       <div class="drawer__content" id="cartItems"></div>
@@ -117,147 +119,134 @@
           <div class="total" id="cartTotal">₹0</div>
         </div>
 
-        <button class="btn btn--primary btn--full" id="checkoutBtn" type="button" disabled>Checkout</button>
-        <button class="btn btn--ghost btn--full" id="clearCartBtn" type="button" disabled>Clear cart</button>
+        <button class="btn btn--primary btn--full" id="checkoutBtn" disabled>Checkout</button>
+        <button class="btn btn--ghost btn--full" id="clearCartBtn" disabled>Clear cart</button>
 
         <div class="small muted">Delivery: AP & TG only • COD not available</div>
       </div>
     </div>
 
-    <div class="drawer__backdrop" id="drawerBackdrop" aria-hidden="true"></div>
+    <div class="drawer__backdrop" id="drawerBackdrop"></div>
   </div>
 
-  <!-- Checkout Modal (Step 1 + Step 2) -->
+  <!-- Checkout Modal -->
   <div class="modal" id="checkoutModal" aria-hidden="true">
-    <div class="modal__panel" role="dialog" aria-label="Checkout">
+    <div class="modal__panel">
       <div class="modal__top">
         <div class="modal__title">Checkout</div>
-        <button class="iconBtn" id="closeCheckoutBtn" type="button" aria-label="Close checkout">✕</button>
+        <button class="iconBtn" id="closeCheckoutBtn" aria-label="Close checkout">✕</button>
       </div>
 
-<div class="checkoutGrid">
+      <div class="checkoutGrid">
+        <!-- STEP 1: Delivery -->
+        <div class="checkoutCard" id="step1">
+          <div class="sectionTitle">Delivery details</div>
 
-  <!-- STEP 1: DETAILS -->
-  <div class="checkoutCard" id="checkoutStepDetails">
-    <div class="sectionTitle">Delivery details</div>
+          <form id="checkoutForm" class="form">
+            <label>
+              Full name
+              <input required name="name" placeholder="Your name" />
+            </label>
 
-    <form id="checkoutForm" class="form">
-      <label>
-        Full name
-        <input required name="name" placeholder="Your name" />
-      </label>
+            <label>
+              Phone
+              <input required name="phone" inputmode="tel" placeholder="+91..." />
+            </label>
 
-      <label>
-        Phone
-        <input required name="phone" inputmode="tel" placeholder="+91..." />
-      </label>
+            <label>
+              Address (House / Street / Area)
+              <input required name="address" placeholder="Full delivery address" />
+            </label>
 
-      <label>
-        Address (House / Street / Area)
-        <input required name="address" placeholder="Full delivery address" />
-      </label>
+            <div class="row">
+              <label>
+                City
+                <input required name="city" value="Guntur" />
+              </label>
 
-      <div class="row">
-        <label>
-          City
-          <input required name="city" value="Guntur" />
-        </label>
+              <label>
+                State (AP/TG only)
+                <select required name="state">
+                  <option value="">Select</option>
+                  <option>Andhra Pradesh</option>
+                  <option>Telangana</option>
+                </select>
+              </label>
+            </div>
 
-        <label>
-          State (AP/TG only)
-          <select required name="state">
-            <option value="">Select</option>
-            <option>Andhra Pradesh</option>
-            <option>Telangana</option>
-          </select>
-        </label>
-      </div>
+            <label>
+              Pincode
+              <input required name="pincode" inputmode="numeric" placeholder="6-digit pincode" />
+            </label>
 
-      <label>
-        Pincode
-        <input required name="pincode" inputmode="numeric" placeholder="6-digit pincode" />
-      </label>
-    </form>
+            <button type="button" class="btn btn--primary btn--full" id="makePaymentBtn">
+              Make payment
+            </button>
 
-    <button class="btn btn--primary btn--full" id="toPaymentBtn" type="button">
-      Make payment
-    </button>
-    <div class="small muted">Next: UPI + upload screenshot</div>
-  </div>
+            <div class="small muted">Next: UPI + upload screenshot</div>
+          </form>
+        </div>
 
-  <!-- STEP 2: PAYMENT -->
-  <div class="checkoutCard" id="checkoutStepPayment" style="display:none">
-    <div class="sectionTitle">Payment (UPI Manual)</div>
+        <!-- STEP 2: Payment -->
+        <div class="checkoutCard" id="step2" style="display:none">
+          <div class="sectionTitle">Payment (UPI Manual)</div>
 
-    <div class="upiBox">
-      <div class="upiTitle">Pay to UPI ID:</div>
-      <div class="upiId" id="upiIdText">UPI_ID_TO_ADD_LATER</div>
-      <div class="muted small">
-        After payment, upload screenshot below (required).
-      </div>
+          <div class="upiBox">
+            <div class="upiTitle">Pay to UPI ID:</div>
+            <div class="upiId" id="upiIdText">UPI_ID_TO_ADD_LATER</div>
+            <div class="muted small">
+              After payment, upload the screenshot to confirm your order.
+            </div>
 
-      <div class="upload">
-        <label class="uploadLabel">
-          Upload payment screenshot (required)
-          <input id="paymentProof" type="file" accept="image/*" />
-        </label>
-        <div class="muted small" id="proofHint">No file selected</div>
-      </div>
-    </div>
+            <div class="upload">
+              <label class="uploadLabel">
+                Upload payment screenshot (required)
+                <input id="paymentProof" type="file" accept="image/*" />
+              </label>
+              <div class="muted small" id="proofHint">No file selected</div>
+            </div>
+          </div>
 
-    <div class="summary">
-      <div class="summaryRow">
-        <span class="muted">Items</span>
-        <span id="summaryItems">0</span>
-      </div>
-      <div class="summaryRow">
-        <span class="muted">Total</span>
-        <span class="summaryTotal" id="summaryTotal">₹0</span>
-      </div>
-    </div>
+          <div class="summary">
+            <div class="summaryRow">
+              <span class="muted">Items</span>
+              <span id="summaryItems">0</span>
+            </div>
+            <div class="summaryRow">
+              <span class="muted">Total</span>
+              <span class="summaryTotal" id="summaryTotal">₹0</span>
+            </div>
+          </div>
 
-    <div class="rowBtns" style="margin-top:12px">
-      <button class="btn btn--ghost" id="backToDetailsBtn" type="button">Back</button>
-      <button class="btn btn--primary" id="finishOrderBtn" type="button">Finish order</button>
-    </div>
+          <button class="btn btn--primary btn--full" id="finishOrderBtn">Finish order</button>
+          <button class="btn btn--ghost btn--full" id="backToDetailsBtn">Back</button>
 
-    <div class="small muted" id="placeOrderMsg"></div>
-  </div>
-
-</div>
-
-
-          <button class="btn btn--ghost btn--full" id="backToDetailsBtn" type="button">
-            Back
-          </button>
+          <div class="small muted" id="placeOrderMsg"></div>
         </div>
       </div>
     </div>
 
-    <div class="modal__backdrop" id="checkoutBackdrop" aria-hidden="true"></div>
+    <div class="modal__backdrop" id="checkoutBackdrop"></div>
   </div>
 
   <!-- Success Modal -->
   <div class="modal" id="successModal" aria-hidden="true">
-    <div class="modal__panel modal__panel--small" role="dialog" aria-label="Order success">
+    <div class="modal__panel modal__panel--small">
       <div class="successBox">
         <div class="successIcon">✅</div>
         <h3>Order placed successfully!</h3>
         <p class="muted">Your Order ID:</p>
         <div class="orderId" id="orderIdText">SS-0000</div>
-        <p class="muted small">
-          We will confirm your order after checking the payment screenshot.
-        </p>
         <div class="rowBtns">
-          <button class="btn btn--ghost" id="newOrderBtn" type="button">Place another order</button>
-          <button class="btn btn--primary" id="closeSuccessBtn" type="button">Close</button>
+          <button class="btn btn--ghost" id="newOrderBtn">Place another order</button>
+          <button class="btn btn--primary" id="closeSuccessBtn">Close</button>
         </div>
       </div>
     </div>
-    <div class="modal__backdrop" id="successBackdrop" aria-hidden="true"></div>
+
+    <div class="modal__backdrop" id="successBackdrop"></div>
   </div>
 
   <script src="script.js"></script>
 </body>
 </html>
-
