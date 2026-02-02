@@ -1,10 +1,16 @@
 /**
- * Google Apps Script Web App URL (your link)
+ * IMPORTANT:
+ * Put your Google Apps Script Web App URL here (must end with /exec)
+ * Example:
+ * const WEB_APP_URL = "https://script.google.com/macros/s/XXXX/exec";
  */
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzjCjfHAvncaUBKhnn97Mww34dKCdQc1Gqx6dyxklMhwfYrWROhlM_St3u5uHlQoXv20A/exec";
+const WEB_APP_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
 
-// UPI ID placeholder (you will update later)
+/** You will update later */
 const UPI_ID = "UPI_ID_TO_ADD_LATER";
+
+/** Your business WhatsApp / phone */
+const BUSINESS_PHONE = "919014140536"; // +91 9014140536 (no + sign)
 
 const PRODUCTS = [
   {
@@ -50,6 +56,7 @@ const PRODUCTS = [
 ];
 
 const cart = []; // {productId, name, variantLabel, price, qty}
+
 const $ = (id) => document.getElementById(id);
 
 function formatINR(n){
@@ -62,7 +69,7 @@ function cartTotals(){
   return { items, total };
 }
 
-/* ====== UI: Products ====== */
+/* ---------------- Products UI ---------------- */
 function renderProducts(){
   const grid = $("productsGrid");
   grid.innerHTML = "";
@@ -103,13 +110,18 @@ function renderProducts(){
       const q = Math.max(1, Number(qty.value || 1));
       const v = p.variants[idx];
       addToCart(p, v, q);
+
+      // IMPORTANT: DO NOT open cart automatically
+      // Just update the count.
+      btn.textContent = "Added ✓";
+      setTimeout(()=> btn.textContent = "Add to cart", 800);
     });
 
     grid.appendChild(el);
   });
 }
 
-/* ====== Cart Logic ====== */
+/* ---------------- Cart logic ---------------- */
 function addToCart(product, variant, qty){
   const key = `${product.id}__${variant.label}`;
   const existing = cart.find(x => `${x.productId}__${x.variantLabel}` === key);
@@ -125,8 +137,6 @@ function addToCart(product, variant, qty){
       qty
     });
   }
-
-  // ✅ update number ONLY (do not open cart automatically)
   updateCartUI();
 }
 
@@ -145,8 +155,12 @@ function updateCartUI(){
   $("cartCount").textContent = items;
   $("cartSub").textContent = `${items} item${items===1?"":"s"}`;
   $("cartTotal").textContent = formatINR(total);
+
+  // Summary in checkout step 1 and step 2
   $("summaryItems").textContent = items;
   $("summaryTotal").textContent = formatINR(total);
+  $("summaryItems2").textContent = items;
+  $("summaryTotal2").textContent = formatINR(total);
 
   $("checkoutBtn").disabled = items === 0;
   $("clearCartBtn").disabled = items === 0;
@@ -167,12 +181,13 @@ function updateCartUI(){
         <div>
           <div class="cartItemName">${c.name}</div>
           <div class="cartItemMeta">${c.variantLabel} • ${formatINR(c.price)} each</div>
+          <div class="muted small" style="margin-top:6px">Qty: ${c.qty}</div>
         </div>
         <div class="cartItemName">${formatINR(c.price * c.qty)}</div>
       </div>
 
       <div class="cartItemActions">
-        <div class="muted small">Qty: ${c.qty}</div>
+        <div></div>
         <button class="linkBtn" type="button">Remove</button>
       </div>
     `;
@@ -181,7 +196,7 @@ function updateCartUI(){
   });
 }
 
-/* ====== Drawer / Modal Open Close ====== */
+/* ---------------- Drawer / Modal open-close ---------------- */
 function openCart(){
   $("cartDrawer").classList.add("show");
   $("cartDrawer").setAttribute("aria-hidden","false");
@@ -192,10 +207,10 @@ function closeCart(){
 }
 
 function openCheckout(){
+  // Start at Step 1 always
+  showStepDelivery();
   $("checkoutModal").classList.add("show");
   $("checkoutModal").setAttribute("aria-hidden","false");
-  $("placeOrderMsg").textContent = "";
-  showCheckoutStep(1);
 }
 function closeCheckout(){
   $("checkoutModal").classList.remove("show");
@@ -206,25 +221,35 @@ function openSuccess(orderId){
   $("orderIdText").textContent = orderId;
   $("successModal").classList.add("show");
   $("successModal").setAttribute("aria-hidden","false");
+
+  // Setup WhatsApp button
+  $("sendWhatsAppBtn").onclick = () => {
+    const { total } = cartTotals(); // after clearCart it becomes 0, so use orderId only
+    const msg = encodeURIComponent(
+      `Hi Sai Spices, I placed an order.\nOrder ID: ${orderId}\nPlease confirm my order.`
+    );
+    window.open(`https://wa.me/${BUSINESS_PHONE}?text=${msg}`, "_blank");
+  };
 }
 function closeSuccess(){
   $("successModal").classList.remove("show");
   $("successModal").setAttribute("aria-hidden","true");
 }
 
-/* ====== Checkout 2 Steps ====== */
-function showCheckoutStep(step){
-  const s1 = $("step1");
-  const s2 = $("step2");
-  if(step === 1){
-    s1.style.display = "block";
-    s2.style.display = "none";
-  } else {
-    s1.style.display = "none";
-    s2.style.display = "block";
-  }
+/* ---------------- Checkout steps ---------------- */
+function showStepDelivery(){
+  $("stepDelivery").style.display = "block";
+  $("stepPayment").style.display = "none";
+  $("deliveryMsg").textContent = "";
+  $("placeOrderMsg").textContent = "";
+}
+function showStepPayment(){
+  $("stepDelivery").style.display = "none";
+  $("stepPayment").style.display = "block";
+  $("placeOrderMsg").textContent = "";
 }
 
+/* ---------------- Order helpers ---------------- */
 function makeOrderId(){
   const n = Math.floor(1000 + Math.random()*9000);
   return `SS-${n}`;
@@ -239,35 +264,59 @@ function fileToDataUrl(file){
   });
 }
 
-/* ====== Place Order ====== */
-async function placeOrder(){
-  const {items,total} = cartTotals();
-  if(items === 0) return;
-
+function validateDeliveryForm(){
   const form = $("checkoutForm");
-  if(!form.reportValidity()){
-    showCheckoutStep(1);
+  const data = new FormData(form);
+
+  const name = (data.get("name")||"").toString().trim();
+  const phone = (data.get("phone")||"").toString().trim();
+  const address = (data.get("address")||"").toString().trim();
+  const city = (data.get("city")||"").toString().trim();
+  const state = (data.get("state")||"").toString().trim();
+  const pincode = (data.get("pincode")||"").toString().trim();
+
+  if(!name || !phone || !address || !city || !state || !pincode){
+    return { ok:false, msg:"Please fill all delivery details." };
+  }
+
+  if(!/^\d{6}$/.test(pincode)){
+    return { ok:false, msg:"Please enter a valid 6-digit pincode." };
+  }
+
+  return {
+    ok:true,
+    value:{ name, phone, address, city, state, pincode }
+  };
+}
+
+/* ---------------- Place order ---------------- */
+async function finishOrder(){
+  const {items,total} = cartTotals();
+  if(items === 0){
+    $("placeOrderMsg").textContent = "Cart is empty.";
     return;
   }
 
-  // must be in payment step for finish order
+  const delivery = validateDeliveryForm();
+  if(!delivery.ok){
+    showStepDelivery();
+    $("deliveryMsg").textContent = delivery.msg;
+    return;
+  }
+
   const proofFile = $("paymentProof").files?.[0];
   if(!proofFile){
-    $("placeOrderMsg").textContent = "Please upload your UPI payment screenshot (required).";
+    $("placeOrderMsg").textContent = "Please upload payment screenshot (required).";
+    return;
+  }
+
+  if(WEB_APP_URL.includes("PASTE_")){
+    $("placeOrderMsg").textContent = "Admin setup: add Google Apps Script Web App URL in script.js";
     return;
   }
 
   $("finishOrderBtn").disabled = true;
-  $("placeOrderMsg").textContent = "Placing order...";
-
-  const fd = new FormData(form);
-
-  const name = (fd.get("name")||"").toString().trim();
-  const phone = (fd.get("phone")||"").toString().trim();
-  const address = (fd.get("address")||"").toString().trim();
-  const city = (fd.get("city")||"").toString().trim();
-  const state = (fd.get("state")||"").toString().trim();
-  const pincode = (fd.get("pincode")||"").toString().trim();
+  $("placeOrderMsg").textContent = "Submitting order...";
 
   const orderId = makeOrderId();
   const proofDataUrl = await fileToDataUrl(proofFile);
@@ -275,7 +324,7 @@ async function placeOrder(){
   const payload = {
     orderId,
     createdAt: new Date().toISOString(),
-    customer: { name, phone, address, city, state, pincode },
+    customer: delivery.value,
     delivery: "AP & Telangana only",
     payment: { method: "UPI (Manual)", upiId: UPI_ID },
     cart,
@@ -294,27 +343,27 @@ async function placeOrder(){
       body: JSON.stringify(payload)
     });
 
-    const text = await res.text();
-    if(!res.ok){
-      throw new Error(text || "Server error");
-    }
+    const txt = await res.text();
+    if(!res.ok) throw new Error(txt || "Server error");
 
+    // Success flow
     closeCheckout();
+    closeCart();
     openSuccess(orderId);
 
+    // Reset
     clearCart();
-    form.reset();
+    $("checkoutForm").reset();
     $("paymentProof").value = "";
     $("proofHint").textContent = "No file selected";
-
   }catch(err){
-    $("placeOrderMsg").textContent = "Failed to place order. Please try again. (" + err.message + ")";
+    $("placeOrderMsg").textContent = "Failed to place order. (" + err.message + ")";
   }finally{
     $("finishOrderBtn").disabled = false;
   }
 }
 
-/* ====== Init ====== */
+/* ---------------- Init ---------------- */
 function init(){
   $("year").textContent = new Date().getFullYear();
   $("upiIdText").textContent = UPI_ID;
@@ -322,10 +371,11 @@ function init(){
   renderProducts();
   updateCartUI();
 
-  // Cart open/close
+  // Cart openers
   $("openCartBtn").addEventListener("click", openCart);
   $("footerCartOpen").addEventListener("click", (e)=>{ e.preventDefault(); openCart(); });
 
+  // Cart closers
   $("closeCartBtn").addEventListener("click", closeCart);
   $("drawerBackdrop").addEventListener("click", closeCart);
 
@@ -335,33 +385,37 @@ function init(){
     openCheckout();
   });
 
+  // Close checkout
   $("closeCheckoutBtn").addEventListener("click", closeCheckout);
   $("checkoutBackdrop").addEventListener("click", closeCheckout);
 
+  // Clear cart
   $("clearCartBtn").addEventListener("click", clearCart);
 
   // Step buttons
-  $("makePaymentBtn").addEventListener("click", () => {
-    const form = $("checkoutForm");
-    if(!form.reportValidity()) return;
-    showCheckoutStep(2);
+  $("goToPaymentBtn").addEventListener("click", () => {
+    const v = validateDeliveryForm();
+    if(!v.ok){
+      $("deliveryMsg").textContent = v.msg;
+      return;
+    }
+    showStepPayment();
   });
 
-  $("backToDetailsBtn").addEventListener("click", () => showCheckoutStep(1));
+  $("backToDeliveryBtn").addEventListener("click", showStepDelivery);
 
-  // Finish order
-  $("finishOrderBtn").addEventListener("click", placeOrder);
-
-  // Screenshot hint
+  // Upload hint
   $("paymentProof").addEventListener("change", (e)=>{
     const f = e.target.files?.[0];
     $("proofHint").textContent = f ? `Selected: ${f.name}` : "No file selected";
   });
 
+  // Finish order
+  $("finishOrderBtn").addEventListener("click", finishOrder);
+
   // Success modal
   $("closeSuccessBtn").addEventListener("click", closeSuccess);
   $("successBackdrop").addEventListener("click", closeSuccess);
-  $("newOrderBtn").addEventListener("click", () => { closeSuccess(); });
 }
 
 document.addEventListener("DOMContentLoaded", init);
