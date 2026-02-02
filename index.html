@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+
   <!-- Header -->
   <header class="top">
     <div class="container nav">
@@ -20,22 +21,22 @@
 
       <div class="nav__actions">
         <a class="btn btn--ghost" href="tel:+919014140536">Call</a>
-        <button class="btn btn--primary" id="openCartBtn">
-          Cart (<span id="cartCount">0</span>)
-        </button>
+        <button class="btn btn--primary" id="openCartBtn">Cart ( <span id="cartCount">0</span> )</button>
       </div>
     </div>
   </header>
 
-  <!-- Hero -->
+  <!-- Main -->
   <main>
+
+    <!-- Hero -->
     <section class="hero">
       <div class="container hero__grid">
         <div>
           <div class="pill">Delivery: Andhra Pradesh & Telangana (initially)</div>
           <h1>Order authentic homemade spices in minutes.</h1>
           <p class="lead">
-            Select products → open cart → checkout → enter delivery → make payment (UPI manual) → upload screenshot → finish order.
+            Select products → open cart → checkout → pay via UPI (manual) → upload screenshot.
           </p>
 
           <div class="trust">
@@ -55,10 +56,11 @@
             <div class="badge">Quick checkout</div>
             <div class="mini">Order ID generated</div>
           </div>
+
           <div class="steps">
-            <div class="step"><span>1</span> Select products + sizes</div>
+            <div class="step"><span>1</span> Add items to cart</div>
             <div class="step"><span>2</span> Enter delivery details</div>
-            <div class="step"><span>3</span> Pay via UPI + upload screenshot</div>
+            <div class="step"><span>3</span> Pay + upload screenshot</div>
           </div>
         </aside>
       </div>
@@ -68,10 +70,7 @@
     <section class="section">
       <div class="container">
         <h2>Products</h2>
-        <p class="muted">
-          Select size + quantity, then add to cart (cart will NOT open automatically).
-        </p>
-
+        <p class="muted">Select size + quantity, then add to cart (cart will NOT open automatically).</p>
         <div class="products" id="productsGrid"></div>
       </div>
     </section>
@@ -98,6 +97,7 @@
         </div>
       </div>
     </footer>
+
   </main>
 
   <!-- Cart Drawer -->
@@ -122,10 +122,11 @@
         <button class="btn btn--primary btn--full" id="checkoutBtn" disabled>Checkout</button>
         <button class="btn btn--ghost btn--full" id="clearCartBtn" disabled>Clear cart</button>
 
-        <div class="small muted">Delivery: AP & TG only • COD not available</div>
+        <div class="small muted">
+          Delivery: AP & TG only • COD not available
+        </div>
       </div>
     </div>
-
     <div class="drawer__backdrop" id="drawerBackdrop"></div>
   </div>
 
@@ -137,9 +138,9 @@
         <button class="iconBtn" id="closeCheckoutBtn" aria-label="Close checkout">✕</button>
       </div>
 
-      <div class="checkoutGrid">
-        <!-- STEP 1: Delivery -->
-        <div class="checkoutCard" id="step1">
+      <!-- STEP 1: Delivery -->
+      <div class="modal__body" id="stepDelivery">
+        <div class="checkoutOne">
           <div class="sectionTitle">Delivery details</div>
 
           <form id="checkoutForm" class="form">
@@ -178,23 +179,35 @@
               Pincode
               <input required name="pincode" inputmode="numeric" placeholder="6-digit pincode" />
             </label>
-
-            <button type="button" class="btn btn--primary btn--full" id="makePaymentBtn">
-              Make payment
-            </button>
-
-            <div class="small muted">Next: UPI + upload screenshot</div>
           </form>
-        </div>
 
-        <!-- STEP 2: Payment -->
-        <div class="checkoutCard" id="step2" style="display:none">
+          <div class="summary miniSummary">
+            <div class="summaryRow">
+              <span class="muted">Items</span>
+              <span id="summaryItems">0</span>
+            </div>
+            <div class="summaryRow">
+              <span class="muted">Total</span>
+              <span class="summaryTotal" id="summaryTotal">₹0</span>
+            </div>
+          </div>
+
+          <button class="btn btn--primary btn--full" id="goToPaymentBtn">Make payment</button>
+          <div class="small muted">Next: UPI + upload screenshot</div>
+          <div class="small" id="deliveryMsg"></div>
+        </div>
+      </div>
+
+      <!-- STEP 2: Payment -->
+      <div class="modal__body" id="stepPayment" style="display:none">
+        <div class="checkoutOne">
           <div class="sectionTitle">Payment (UPI Manual)</div>
 
           <div class="upiBox">
             <div class="upiTitle">Pay to UPI ID:</div>
             <div class="upiId" id="upiIdText">UPI_ID_TO_ADD_LATER</div>
-            <div class="muted small">
+
+            <div class="muted small" style="margin-top:8px">
               After payment, upload the screenshot to confirm your order.
             </div>
 
@@ -210,22 +223,22 @@
           <div class="summary">
             <div class="summaryRow">
               <span class="muted">Items</span>
-              <span id="summaryItems">0</span>
+              <span id="summaryItems2">0</span>
             </div>
             <div class="summaryRow">
               <span class="muted">Total</span>
-              <span class="summaryTotal" id="summaryTotal">₹0</span>
+              <span class="summaryTotal" id="summaryTotal2">₹0</span>
             </div>
           </div>
 
           <button class="btn btn--primary btn--full" id="finishOrderBtn">Finish order</button>
-          <button class="btn btn--ghost btn--full" id="backToDetailsBtn">Back</button>
+          <button class="btn btn--ghost btn--full" id="backToDeliveryBtn">Back</button>
 
-          <div class="small muted" id="placeOrderMsg"></div>
+          <div class="small" id="placeOrderMsg"></div>
         </div>
       </div>
-    </div>
 
+    </div>
     <div class="modal__backdrop" id="checkoutBackdrop"></div>
   </div>
 
@@ -237,13 +250,17 @@
         <h3>Order placed successfully!</h3>
         <p class="muted">Your Order ID:</p>
         <div class="orderId" id="orderIdText">SS-0000</div>
+
         <div class="rowBtns">
-          <button class="btn btn--ghost" id="newOrderBtn">Place another order</button>
+          <button class="btn btn--ghost" id="sendWhatsAppBtn">Send on WhatsApp</button>
           <button class="btn btn--primary" id="closeSuccessBtn">Close</button>
+        </div>
+
+        <div class="muted small" style="margin-top:10px">
+          We will confirm your order after checking the payment screenshot.
         </div>
       </div>
     </div>
-
     <div class="modal__backdrop" id="successBackdrop"></div>
   </div>
 
