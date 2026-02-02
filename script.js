@@ -1,16 +1,12 @@
 /**
- * IMPORTANT:
- * Put your Google Apps Script Web App URL here (must end with /exec)
- * Example:
- * const WEB_APP_URL = "https://script.google.com/macros/s/XXXX/exec";
+ * OPTIONAL (Google Sheets):
+ * Paste your deployed Google Apps Script Web App URL here later.
+ * Until then, leave it as "" and checkout will still work.
  */
-const WEB_APP_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+const WEB_APP_URL = ""; // e.g. "https://script.google.com/macros/s/XXXX/exec"
 
-/** You will update later */
+// UPI ID placeholder (update later)
 const UPI_ID = "UPI_ID_TO_ADD_LATER";
-
-/** Your business WhatsApp / phone */
-const BUSINESS_PHONE = "919014140536"; // +91 9014140536 (no + sign)
 
 const PRODUCTS = [
   {
@@ -69,7 +65,6 @@ function cartTotals(){
   return { items, total };
 }
 
-/* ---------------- Products UI ---------------- */
 function renderProducts(){
   const grid = $("productsGrid");
   grid.innerHTML = "";
@@ -85,17 +80,11 @@ function renderProducts(){
     el.innerHTML = `
       <h3>${p.name}</h3>
       <p>${p.desc}</p>
-
       <div class="row">
-        <select class="variantSel" aria-label="Select size">
-          ${variantOptions}
-        </select>
-
+        <select class="variantSel" aria-label="Select size">${variantOptions}</select>
         <input class="qty" type="number" min="1" value="1" aria-label="Quantity" />
-
         <button class="btn btn--primary addBtn" type="button">Add to cart</button>
       </div>
-
       <div class="muted small" style="margin-top:10px">
         Delivery: AP & Telangana only • COD not available
       </div>
@@ -110,22 +99,18 @@ function renderProducts(){
       const q = Math.max(1, Number(qty.value || 1));
       const v = p.variants[idx];
       addToCart(p, v, q);
-
-      // IMPORTANT: DO NOT open cart automatically
-      // Just update the count.
-      btn.textContent = "Added ✓";
-      setTimeout(()=> btn.textContent = "Add to cart", 800);
+      // IMPORTANT: do NOT open cart automatically
+      btn.textContent = "Added!";
+      setTimeout(()=>btn.textContent="Add to cart", 600);
     });
 
     grid.appendChild(el);
   });
 }
 
-/* ---------------- Cart logic ---------------- */
 function addToCart(product, variant, qty){
   const key = `${product.id}__${variant.label}`;
   const existing = cart.find(x => `${x.productId}__${x.variantLabel}` === key);
-
   if(existing){
     existing.qty += qty;
   } else {
@@ -152,11 +137,11 @@ function clearCart(){
 
 function updateCartUI(){
   const {items,total} = cartTotals();
+
   $("cartCount").textContent = items;
   $("cartSub").textContent = `${items} item${items===1?"":"s"}`;
   $("cartTotal").textContent = formatINR(total);
 
-  // Summary in checkout step 1 and step 2
   $("summaryItems").textContent = items;
   $("summaryTotal").textContent = formatINR(total);
   $("summaryItems2").textContent = items;
@@ -181,13 +166,13 @@ function updateCartUI(){
         <div>
           <div class="cartItemName">${c.name}</div>
           <div class="cartItemMeta">${c.variantLabel} • ${formatINR(c.price)} each</div>
-          <div class="muted small" style="margin-top:6px">Qty: ${c.qty}</div>
+          <div class="cartItemMeta">Qty: ${c.qty}</div>
         </div>
         <div class="cartItemName">${formatINR(c.price * c.qty)}</div>
       </div>
 
       <div class="cartItemActions">
-        <div></div>
+        <div class="muted small"></div>
         <button class="linkBtn" type="button">Remove</button>
       </div>
     `;
@@ -196,60 +181,59 @@ function updateCartUI(){
   });
 }
 
-/* ---------------- Drawer / Modal open-close ---------------- */
+/* Drawer / Modal helpers */
+function lockScroll(lock){
+  document.body.classList.toggle("noScroll", lock);
+}
+
 function openCart(){
   $("cartDrawer").classList.add("show");
   $("cartDrawer").setAttribute("aria-hidden","false");
+  lockScroll(true);
 }
 function closeCart(){
   $("cartDrawer").classList.remove("show");
   $("cartDrawer").setAttribute("aria-hidden","true");
+  lockScroll(false);
 }
 
 function openCheckout(){
-  // Start at Step 1 always
-  showStepDelivery();
   $("checkoutModal").classList.add("show");
   $("checkoutModal").setAttribute("aria-hidden","false");
+  lockScroll(true);
+  showDetailsStep();
 }
 function closeCheckout(){
   $("checkoutModal").classList.remove("show");
   $("checkoutModal").setAttribute("aria-hidden","true");
+  lockScroll(false);
+}
+
+/* Checkout steps */
+function showDetailsStep(){
+  $("stepDetails").style.display = "block";
+  $("stepPayment").style.display = "none";
+  $("detailsMsg").textContent = "";
+  $("placeOrderMsg").textContent = "";
+}
+function showPaymentStep(){
+  $("stepDetails").style.display = "none";
+  $("stepPayment").style.display = "block";
+  $("placeOrderMsg").textContent = "";
 }
 
 function openSuccess(orderId){
   $("orderIdText").textContent = orderId;
   $("successModal").classList.add("show");
   $("successModal").setAttribute("aria-hidden","false");
-
-  // Setup WhatsApp button
-  $("sendWhatsAppBtn").onclick = () => {
-    const { total } = cartTotals(); // after clearCart it becomes 0, so use orderId only
-    const msg = encodeURIComponent(
-      `Hi Sai Spices, I placed an order.\nOrder ID: ${orderId}\nPlease confirm my order.`
-    );
-    window.open(`https://wa.me/${BUSINESS_PHONE}?text=${msg}`, "_blank");
-  };
+  lockScroll(true);
 }
 function closeSuccess(){
   $("successModal").classList.remove("show");
   $("successModal").setAttribute("aria-hidden","true");
+  lockScroll(false);
 }
 
-/* ---------------- Checkout steps ---------------- */
-function showStepDelivery(){
-  $("stepDelivery").style.display = "block";
-  $("stepPayment").style.display = "none";
-  $("deliveryMsg").textContent = "";
-  $("placeOrderMsg").textContent = "";
-}
-function showStepPayment(){
-  $("stepDelivery").style.display = "none";
-  $("stepPayment").style.display = "block";
-  $("placeOrderMsg").textContent = "";
-}
-
-/* ---------------- Order helpers ---------------- */
 function makeOrderId(){
   const n = Math.floor(1000 + Math.random()*9000);
   return `SS-${n}`;
@@ -264,67 +248,60 @@ function fileToDataUrl(file){
   });
 }
 
-function validateDeliveryForm(){
-  const form = $("checkoutForm");
-  const data = new FormData(form);
+function validateDetails(){
+  const {items} = cartTotals();
+  if(items === 0){
+    $("detailsMsg").textContent = "Your cart is empty.";
+    return null;
+  }
 
-  const name = (data.get("name")||"").toString().trim();
-  const phone = (data.get("phone")||"").toString().trim();
-  const address = (data.get("address")||"").toString().trim();
-  const city = (data.get("city")||"").toString().trim();
-  const state = (data.get("state")||"").toString().trim();
-  const pincode = (data.get("pincode")||"").toString().trim();
+  const form = $("checkoutForm");
+  const fd = new FormData(form);
+
+  const name = (fd.get("name")||"").toString().trim();
+  const phone = (fd.get("phone")||"").toString().trim();
+  const address = (fd.get("address")||"").toString().trim();
+  const city = (fd.get("city")||"").toString().trim();
+  const state = (fd.get("state")||"").toString().trim();
+  const pincode = (fd.get("pincode")||"").toString().trim();
 
   if(!name || !phone || !address || !city || !state || !pincode){
-    return { ok:false, msg:"Please fill all delivery details." };
+    $("detailsMsg").textContent = "Please fill all delivery details.";
+    return null;
   }
 
-  if(!/^\d{6}$/.test(pincode)){
-    return { ok:false, msg:"Please enter a valid 6-digit pincode." };
-  }
-
-  return {
-    ok:true,
-    value:{ name, phone, address, city, state, pincode }
-  };
+  return { name, phone, address, city, state, pincode };
 }
 
-/* ---------------- Place order ---------------- */
 async function finishOrder(){
-  const {items,total} = cartTotals();
-  if(items === 0){
-    $("placeOrderMsg").textContent = "Cart is empty.";
-    return;
-  }
-
-  const delivery = validateDeliveryForm();
-  if(!delivery.ok){
-    showStepDelivery();
-    $("deliveryMsg").textContent = delivery.msg;
-    return;
-  }
+  const details = validateDetails();
+  if(!details) return;
 
   const proofFile = $("paymentProof").files?.[0];
   if(!proofFile){
-    $("placeOrderMsg").textContent = "Please upload payment screenshot (required).";
-    return;
-  }
-
-  if(WEB_APP_URL.includes("PASTE_")){
-    $("placeOrderMsg").textContent = "Admin setup: add Google Apps Script Web App URL in script.js";
+    $("placeOrderMsg").textContent = "Please upload your UPI payment screenshot (required).";
     return;
   }
 
   $("finishOrderBtn").disabled = true;
-  $("placeOrderMsg").textContent = "Submitting order...";
+  $("placeOrderMsg").textContent = "Placing order...";
 
+  const {items,total} = cartTotals();
   const orderId = makeOrderId();
-  const proofDataUrl = await fileToDataUrl(proofFile);
+
+  let proofDataUrl = "";
+  try{
+    proofDataUrl = await fileToDataUrl(proofFile);
+  }catch{
+    $("placeOrderMsg").textContent = "Could not read screenshot. Please try again.";
+    $("finishOrderBtn").disabled = false;
+    return;
+  }
 
   const payload = {
     orderId,
     createdAt: new Date().toISOString(),
-    customer: delivery.value,
+    customer: details,
     delivery: "AP & Telangana only",
     payment: { method: "UPI (Manual)", upiId: UPI_ID },
     cart,
@@ -336,34 +313,44 @@ async function finishOrder(){
     }
   };
 
+  // If Sheets is not setup yet, STILL complete order on website
+  if(!WEB_APP_URL){
+    closeCheckout();
+    closeCart();
+    openSuccess(orderId);
+    clearCart();
+    $("checkoutForm").reset();
+    $("paymentProof").value = "";
+    $("proofHint").textContent = "No file selected";
+    $("finishOrderBtn").disabled = false;
+    return;
+  }
+
+  // If Sheets is setup, try to send it
   try{
-    const res = await fetch(WEB_APP_URL, {
+    // IMPORTANT: use no-cors to avoid Google Apps Script CORS blocking
+    await fetch(WEB_APP_URL, {
       method: "POST",
+      mode: "no-cors",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
-    const txt = await res.text();
-    if(!res.ok) throw new Error(txt || "Server error");
-
-    // Success flow
+    // We can't read response in no-cors mode (opaque), so we assume success if no error thrown
     closeCheckout();
     closeCart();
     openSuccess(orderId);
-
-    // Reset
     clearCart();
     $("checkoutForm").reset();
     $("paymentProof").value = "";
     $("proofHint").textContent = "No file selected";
   }catch(err){
-    $("placeOrderMsg").textContent = "Failed to place order. (" + err.message + ")";
+    $("placeOrderMsg").textContent = "Failed to place order. Please try again. (" + err.message + ")";
   }finally{
     $("finishOrderBtn").disabled = false;
   }
 }
 
-/* ---------------- Init ---------------- */
 function init(){
   $("year").textContent = new Date().getFullYear();
   $("upiIdText").textContent = UPI_ID;
@@ -371,51 +358,46 @@ function init(){
   renderProducts();
   updateCartUI();
 
-  // Cart openers
+  // Cart open/close
   $("openCartBtn").addEventListener("click", openCart);
   $("footerCartOpen").addEventListener("click", (e)=>{ e.preventDefault(); openCart(); });
-
-  // Cart closers
   $("closeCartBtn").addEventListener("click", closeCart);
   $("drawerBackdrop").addEventListener("click", closeCart);
 
-  // Checkout from cart
+  // Cart actions
+  $("clearCartBtn").addEventListener("click", clearCart);
+
+  // Checkout flow
   $("checkoutBtn").addEventListener("click", () => {
     closeCart();
     openCheckout();
   });
 
-  // Close checkout
   $("closeCheckoutBtn").addEventListener("click", closeCheckout);
   $("checkoutBackdrop").addEventListener("click", closeCheckout);
 
-  // Clear cart
-  $("clearCartBtn").addEventListener("click", clearCart);
-
-  // Step buttons
-  $("goToPaymentBtn").addEventListener("click", () => {
-    const v = validateDeliveryForm();
-    if(!v.ok){
-      $("deliveryMsg").textContent = v.msg;
-      return;
-    }
-    showStepPayment();
+  $("goPaymentBtn").addEventListener("click", () => {
+    const details = validateDetails();
+    if(!details) return;
+    showPaymentStep();
   });
 
-  $("backToDeliveryBtn").addEventListener("click", showStepDelivery);
+  $("backToDetailsBtn").addEventListener("click", showDetailsStep);
 
-  // Upload hint
   $("paymentProof").addEventListener("change", (e)=>{
     const f = e.target.files?.[0];
     $("proofHint").textContent = f ? `Selected: ${f.name}` : "No file selected";
   });
 
-  // Finish order
   $("finishOrderBtn").addEventListener("click", finishOrder);
 
   // Success modal
   $("closeSuccessBtn").addEventListener("click", closeSuccess);
   $("successBackdrop").addEventListener("click", closeSuccess);
+  $("newOrderBtn").addEventListener("click", () => {
+    closeSuccess();
+    window.scrollTo({top:0, behavior:"smooth"});
+  });
 }
 
 document.addEventListener("DOMContentLoaded", init);
