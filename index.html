@@ -1,421 +1,269 @@
-/**
- * IMPORTANT:
- * Put your Google Apps Script Web App URL here (must end with /exec)
- * Example:
- * const WEB_APP_URL = "https://script.google.com/macros/s/XXXX/exec";
- */
-const WEB_APP_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sai Spices — Order Online</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
 
-/** You will update later */
-const UPI_ID = "UPI_ID_TO_ADD_LATER";
-
-/** Your business WhatsApp / phone */
-const BUSINESS_PHONE = "919014140536"; // +91 9014140536 (no + sign)
-
-const PRODUCTS = [
-  {
-    id: "chilli",
-    name: "Red Chilli Powder",
-    desc: "Bright colour • strong flavour",
-    variants: [
-      { label: "100 g", price: 65 },
-      { label: "200 g", price: 119 },
-      { label: "500 g", price: 189 },
-      { label: "1 kg", price: 289 },
-    ],
-  },
-  {
-    id: "turmeric",
-    name: "Turmeric Powder",
-    desc: "Pure & aromatic",
-    variants: [
-      { label: "50 g", price: 29 },
-      { label: "100 g", price: 59 },
-    ],
-  },
-  {
-    id: "jeera",
-    name: "Homemade Jeera Powder",
-    desc: "Fresh roasted • homemade",
-    variants: [
-      { label: "50 g", price: 25 },
-      { label: "100 g", price: 49 },
-      { label: "250 g", price: 79 },
-    ],
-  },
-  {
-    id: "garam",
-    name: "Homemade Garam Masala",
-    desc: "Balanced blend • homemade",
-    variants: [
-      { label: "50 g", price: 29 },
-      { label: "100 g", price: 59 },
-      { label: "150 g", price: 89 },
-    ],
-  },
-];
-
-const cart = []; // {productId, name, variantLabel, price, qty}
-
-const $ = (id) => document.getElementById(id);
-
-function formatINR(n){
-  return "₹" + Number(n).toLocaleString("en-IN");
-}
-
-function cartTotals(){
-  const items = cart.reduce((a,c)=>a + c.qty, 0);
-  const total = cart.reduce((a,c)=>a + (c.price * c.qty), 0);
-  return { items, total };
-}
-
-/* ---------------- Products UI ---------------- */
-function renderProducts(){
-  const grid = $("productsGrid");
-  grid.innerHTML = "";
-
-  PRODUCTS.forEach(p => {
-    const el = document.createElement("div");
-    el.className = "product";
-
-    const variantOptions = p.variants
-      .map((v,i)=>`<option value="${i}">${v.label} — ${formatINR(v.price)}</option>`)
-      .join("");
-
-    el.innerHTML = `
-      <h3>${p.name}</h3>
-      <p>${p.desc}</p>
-
-      <div class="row">
-        <select class="variantSel" aria-label="Select size">
-          ${variantOptions}
-        </select>
-
-        <input class="qty" type="number" min="1" value="1" aria-label="Quantity" />
-
-        <button class="btn btn--primary addBtn" type="button">Add to cart</button>
-      </div>
-
-      <div class="muted small" style="margin-top:10px">
-        Delivery: AP & Telangana only • COD not available
-      </div>
-    `;
-
-    const sel = el.querySelector(".variantSel");
-    const qty = el.querySelector(".qty");
-    const btn = el.querySelector(".addBtn");
-
-    btn.addEventListener("click", () => {
-      const idx = Number(sel.value);
-      const q = Math.max(1, Number(qty.value || 1));
-      const v = p.variants[idx];
-      addToCart(p, v, q);
-
-      // IMPORTANT: DO NOT open cart automatically
-      // Just update the count.
-      btn.textContent = "Added ✓";
-      setTimeout(()=> btn.textContent = "Add to cart", 800);
-    });
-
-    grid.appendChild(el);
-  });
-}
-
-/* ---------------- Cart logic ---------------- */
-function addToCart(product, variant, qty){
-  const key = `${product.id}__${variant.label}`;
-  const existing = cart.find(x => `${x.productId}__${x.variantLabel}` === key);
-
-  if(existing){
-    existing.qty += qty;
-  } else {
-    cart.push({
-      productId: product.id,
-      name: product.name,
-      variantLabel: variant.label,
-      price: variant.price,
-      qty
-    });
-  }
-  updateCartUI();
-}
-
-function removeItem(index){
-  cart.splice(index,1);
-  updateCartUI();
-}
-
-function clearCart(){
-  cart.length = 0;
-  updateCartUI();
-}
-
-function updateCartUI(){
-  const {items,total} = cartTotals();
-  $("cartCount").textContent = items;
-  $("cartSub").textContent = `${items} item${items===1?"":"s"}`;
-  $("cartTotal").textContent = formatINR(total);
-
-  // Summary in checkout step 1 and step 2
-  $("summaryItems").textContent = items;
-  $("summaryTotal").textContent = formatINR(total);
-  $("summaryItems2").textContent = items;
-  $("summaryTotal2").textContent = formatINR(total);
-
-  $("checkoutBtn").disabled = items === 0;
-  $("clearCartBtn").disabled = items === 0;
-
-  const list = $("cartItems");
-  list.innerHTML = "";
-
-  if(items === 0){
-    list.innerHTML = `<div class="muted">Your cart is empty.</div>`;
-    return;
-  }
-
-  cart.forEach((c, idx) => {
-    const item = document.createElement("div");
-    item.className = "cartItem";
-    item.innerHTML = `
-      <div class="cartItemTop">
+  <!-- Header -->
+  <header class="top">
+    <div class="container nav">
+      <div class="brand">
+        <img class="brand__logo" src="logo.jpg" alt="Sai Spices logo" />
         <div>
-          <div class="cartItemName">${c.name}</div>
-          <div class="cartItemMeta">${c.variantLabel} • ${formatINR(c.price)} each</div>
-          <div class="muted small" style="margin-top:6px">Qty: ${c.qty}</div>
+          <div class="brand__name">Sai Spices</div>
+          <div class="brand__sub">Homemade spices • Guntur, Andhra Pradesh</div>
         </div>
-        <div class="cartItemName">${formatINR(c.price * c.qty)}</div>
       </div>
 
-      <div class="cartItemActions">
-        <div></div>
-        <button class="linkBtn" type="button">Remove</button>
+      <div class="nav__actions">
+        <a class="btn btn--ghost" href="tel:+919014140536">Call</a>
+        <button class="btn btn--primary" id="openCartBtn">Cart ( <span id="cartCount">0</span> )</button>
       </div>
-    `;
-    item.querySelector(".linkBtn").addEventListener("click", () => removeItem(idx));
-    list.appendChild(item);
-  });
-}
+    </div>
+  </header>
 
-/* ---------------- Drawer / Modal open-close ---------------- */
-function openCart(){
-  $("cartDrawer").classList.add("show");
-  $("cartDrawer").setAttribute("aria-hidden","false");
-}
-function closeCart(){
-  $("cartDrawer").classList.remove("show");
-  $("cartDrawer").setAttribute("aria-hidden","true");
-}
+  <!-- Main -->
+  <main>
 
-function openCheckout(){
-  // Start at Step 1 always
-  showStepDelivery();
-  $("checkoutModal").classList.add("show");
-  $("checkoutModal").setAttribute("aria-hidden","false");
-}
-function closeCheckout(){
-  $("checkoutModal").classList.remove("show");
-  $("checkoutModal").setAttribute("aria-hidden","true");
-}
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container hero__grid">
+        <div>
+          <div class="pill">Delivery: Andhra Pradesh & Telangana (initially)</div>
+          <h1>Order authentic homemade spices in minutes.</h1>
+          <p class="lead">
+            Select products → open cart → checkout → pay via UPI (manual) → upload screenshot.
+          </p>
 
-function openSuccess(orderId){
-  $("orderIdText").textContent = orderId;
-  $("successModal").classList.add("show");
-  $("successModal").setAttribute("aria-hidden","false");
+          <div class="trust">
+            <div class="trust__item">✅ Freshly packed</div>
+            <div class="trust__item">✅ Clear pricing</div>
+            <div class="trust__item">✅ AP/TG delivery</div>
+          </div>
 
-  // Setup WhatsApp button
-  $("sendWhatsAppBtn").onclick = () => {
-    const { total } = cartTotals(); // after clearCart it becomes 0, so use orderId only
-    const msg = encodeURIComponent(
-      `Hi Sai Spices, I placed an order.\nOrder ID: ${orderId}\nPlease confirm my order.`
-    );
-    window.open(`https://wa.me/${BUSINESS_PHONE}?text=${msg}`, "_blank");
-  };
-}
-function closeSuccess(){
-  $("successModal").classList.remove("show");
-  $("successModal").setAttribute("aria-hidden","true");
-}
+          <div class="note">
+            <strong>Note:</strong> Currently we accept <strong>UPI (Manual)</strong> only.
+            No Cash on Delivery.
+          </div>
+        </div>
 
-/* ---------------- Checkout steps ---------------- */
-function showStepDelivery(){
-  $("stepDelivery").style.display = "block";
-  $("stepPayment").style.display = "none";
-  $("deliveryMsg").textContent = "";
-  $("placeOrderMsg").textContent = "";
-}
-function showStepPayment(){
-  $("stepDelivery").style.display = "none";
-  $("stepPayment").style.display = "block";
-  $("placeOrderMsg").textContent = "";
-}
+        <aside class="card">
+          <div class="card__top">
+            <div class="badge">Quick checkout</div>
+            <div class="mini">Order ID generated</div>
+          </div>
 
-/* ---------------- Order helpers ---------------- */
-function makeOrderId(){
-  const n = Math.floor(1000 + Math.random()*9000);
-  return `SS-${n}`;
-}
+          <div class="steps">
+            <div class="step"><span>1</span> Add items to cart</div>
+            <div class="step"><span>2</span> Enter delivery details</div>
+            <div class="step"><span>3</span> Pay + upload screenshot</div>
+          </div>
+        </aside>
+      </div>
+    </section>
 
-function fileToDataUrl(file){
-  return new Promise((resolve,reject)=>{
-    const r = new FileReader();
-    r.onload = () => resolve(String(r.result));
-    r.onerror = reject;
-    r.readAsDataURL(file);
-  });
-}
+    <!-- Products -->
+    <section class="section">
+      <div class="container">
+        <h2>Products</h2>
+        <p class="muted">Select size + quantity, then add to cart (cart will NOT open automatically).</p>
+        <div class="products" id="productsGrid"></div>
+      </div>
+    </section>
 
-function validateDeliveryForm(){
-  const form = $("checkoutForm");
-  const data = new FormData(form);
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container footer__grid">
+        <div>
+          <div class="footer__brand">Sai Spices</div>
+          <p class="muted small">
+            Homemade spice powders from Guntur, Andhra Pradesh.
+            Delivery available in Andhra Pradesh & Telangana (initially).
+          </p>
+        </div>
 
-  const name = (data.get("name")||"").toString().trim();
-  const phone = (data.get("phone")||"").toString().trim();
-  const address = (data.get("address")||"").toString().trim();
-  const city = (data.get("city")||"").toString().trim();
-  const state = (data.get("state")||"").toString().trim();
-  const pincode = (data.get("pincode")||"").toString().trim();
+        <div class="footer__links">
+          <a href="#" id="footerCartOpen">Open cart</a>
+          <a href="tel:+919014140536">Call: +91 9014140536</a>
+        </div>
 
-  if(!name || !phone || !address || !city || !state || !pincode){
-    return { ok:false, msg:"Please fill all delivery details." };
-  }
+        <div class="footer__contact">
+          <div class="muted small">Location: Guntur, Andhra Pradesh</div>
+          <div class="muted small">© <span id="year"></span> Sai Spices</div>
+        </div>
+      </div>
+    </footer>
 
-  if(!/^\d{6}$/.test(pincode)){
-    return { ok:false, msg:"Please enter a valid 6-digit pincode." };
-  }
+  </main>
 
-  return {
-    ok:true,
-    value:{ name, phone, address, city, state, pincode }
-  };
-}
+  <!-- Cart Drawer -->
+  <div class="drawer" id="cartDrawer" aria-hidden="true">
+    <div class="drawer__panel">
+      <div class="drawer__top">
+        <div>
+          <div class="drawer__title">Your Cart</div>
+          <div class="muted small" id="cartSub">0 items</div>
+        </div>
+        <button class="iconBtn" id="closeCartBtn" aria-label="Close cart">✕</button>
+      </div>
 
-/* ---------------- Place order ---------------- */
-async function finishOrder(){
-  const {items,total} = cartTotals();
-  if(items === 0){
-    $("placeOrderMsg").textContent = "Cart is empty.";
-    return;
-  }
+      <div class="drawer__content" id="cartItems"></div>
 
-  const delivery = validateDeliveryForm();
-  if(!delivery.ok){
-    showStepDelivery();
-    $("deliveryMsg").textContent = delivery.msg;
-    return;
-  }
+      <div class="drawer__bottom">
+        <div class="totals">
+          <div class="muted">Total</div>
+          <div class="total" id="cartTotal">₹0</div>
+        </div>
 
-  const proofFile = $("paymentProof").files?.[0];
-  if(!proofFile){
-    $("placeOrderMsg").textContent = "Please upload payment screenshot (required).";
-    return;
-  }
+        <button class="btn btn--primary btn--full" id="checkoutBtn" disabled>Checkout</button>
+        <button class="btn btn--ghost btn--full" id="clearCartBtn" disabled>Clear cart</button>
 
-  if(WEB_APP_URL.includes("PASTE_")){
-    $("placeOrderMsg").textContent = "Admin setup: add Google Apps Script Web App URL in script.js";
-    return;
-  }
+        <div class="small muted">
+          Delivery: AP & TG only • COD not available
+        </div>
+      </div>
+    </div>
+    <div class="drawer__backdrop" id="drawerBackdrop"></div>
+  </div>
 
-  $("finishOrderBtn").disabled = true;
-  $("placeOrderMsg").textContent = "Submitting order...";
+  <!-- Checkout Modal -->
+  <div class="modal" id="checkoutModal" aria-hidden="true">
+    <div class="modal__panel">
+      <div class="modal__top">
+        <div class="modal__title">Checkout</div>
+        <button class="iconBtn" id="closeCheckoutBtn" aria-label="Close checkout">✕</button>
+      </div>
 
-  const orderId = makeOrderId();
-  const proofDataUrl = await fileToDataUrl(proofFile);
+      <!-- STEP 1: Delivery -->
+      <div class="modal__body" id="stepDelivery">
+        <div class="checkoutOne">
+          <div class="sectionTitle">Delivery details</div>
 
-  const payload = {
-    orderId,
-    createdAt: new Date().toISOString(),
-    customer: delivery.value,
-    delivery: "AP & Telangana only",
-    payment: { method: "UPI (Manual)", upiId: UPI_ID },
-    cart,
-    total,
-    screenshot: {
-      filename: proofFile.name,
-      mimeType: proofFile.type || "image/png",
-      dataUrl: proofDataUrl
-    }
-  };
+          <form id="checkoutForm" class="form">
+            <label>
+              Full name
+              <input required name="name" placeholder="Your name" />
+            </label>
 
-  try{
-    const res = await fetch(WEB_APP_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+            <label>
+              Phone
+              <input required name="phone" inputmode="tel" placeholder="+91..." />
+            </label>
 
-    const txt = await res.text();
-    if(!res.ok) throw new Error(txt || "Server error");
+            <label>
+              Address (House / Street / Area)
+              <input required name="address" placeholder="Full delivery address" />
+            </label>
 
-    // Success flow
-    closeCheckout();
-    closeCart();
-    openSuccess(orderId);
+            <div class="row">
+              <label>
+                City
+                <input required name="city" value="Guntur" />
+              </label>
 
-    // Reset
-    clearCart();
-    $("checkoutForm").reset();
-    $("paymentProof").value = "";
-    $("proofHint").textContent = "No file selected";
-  }catch(err){
-    $("placeOrderMsg").textContent = "Failed to place order. (" + err.message + ")";
-  }finally{
-    $("finishOrderBtn").disabled = false;
-  }
-}
+              <label>
+                State (AP/TG only)
+                <select required name="state">
+                  <option value="">Select</option>
+                  <option>Andhra Pradesh</option>
+                  <option>Telangana</option>
+                </select>
+              </label>
+            </div>
 
-/* ---------------- Init ---------------- */
-function init(){
-  $("year").textContent = new Date().getFullYear();
-  $("upiIdText").textContent = UPI_ID;
+            <label>
+              Pincode
+              <input required name="pincode" inputmode="numeric" placeholder="6-digit pincode" />
+            </label>
+          </form>
 
-  renderProducts();
-  updateCartUI();
+          <div class="summary miniSummary">
+            <div class="summaryRow">
+              <span class="muted">Items</span>
+              <span id="summaryItems">0</span>
+            </div>
+            <div class="summaryRow">
+              <span class="muted">Total</span>
+              <span class="summaryTotal" id="summaryTotal">₹0</span>
+            </div>
+          </div>
 
-  // Cart openers
-  $("openCartBtn").addEventListener("click", openCart);
-  $("footerCartOpen").addEventListener("click", (e)=>{ e.preventDefault(); openCart(); });
+          <button class="btn btn--primary btn--full" id="goToPaymentBtn">Make payment</button>
+          <div class="small muted">Next: UPI + upload screenshot</div>
+          <div class="small" id="deliveryMsg"></div>
+        </div>
+      </div>
 
-  // Cart closers
-  $("closeCartBtn").addEventListener("click", closeCart);
-  $("drawerBackdrop").addEventListener("click", closeCart);
+      <!-- STEP 2: Payment -->
+      <div class="modal__body" id="stepPayment" style="display:none">
+        <div class="checkoutOne">
+          <div class="sectionTitle">Payment (UPI Manual)</div>
 
-  // Checkout from cart
-  $("checkoutBtn").addEventListener("click", () => {
-    closeCart();
-    openCheckout();
-  });
+          <div class="upiBox">
+            <div class="upiTitle">Pay to UPI ID:</div>
+            <div class="upiId" id="upiIdText">UPI_ID_TO_ADD_LATER</div>
 
-  // Close checkout
-  $("closeCheckoutBtn").addEventListener("click", closeCheckout);
-  $("checkoutBackdrop").addEventListener("click", closeCheckout);
+            <div class="muted small" style="margin-top:8px">
+              After payment, upload the screenshot to confirm your order.
+            </div>
 
-  // Clear cart
-  $("clearCartBtn").addEventListener("click", clearCart);
+            <div class="upload">
+              <label class="uploadLabel">
+                Upload payment screenshot (required)
+                <input id="paymentProof" type="file" accept="image/*" />
+              </label>
+              <div class="muted small" id="proofHint">No file selected</div>
+            </div>
+          </div>
 
-  // Step buttons
-  $("goToPaymentBtn").addEventListener("click", () => {
-    const v = validateDeliveryForm();
-    if(!v.ok){
-      $("deliveryMsg").textContent = v.msg;
-      return;
-    }
-    showStepPayment();
-  });
+          <div class="summary">
+            <div class="summaryRow">
+              <span class="muted">Items</span>
+              <span id="summaryItems2">0</span>
+            </div>
+            <div class="summaryRow">
+              <span class="muted">Total</span>
+              <span class="summaryTotal" id="summaryTotal2">₹0</span>
+            </div>
+          </div>
 
-  $("backToDeliveryBtn").addEventListener("click", showStepDelivery);
+          <button class="btn btn--primary btn--full" id="finishOrderBtn">Finish order</button>
+          <button class="btn btn--ghost btn--full" id="backToDeliveryBtn">Back</button>
 
-  // Upload hint
-  $("paymentProof").addEventListener("change", (e)=>{
-    const f = e.target.files?.[0];
-    $("proofHint").textContent = f ? `Selected: ${f.name}` : "No file selected";
-  });
+          <div class="small" id="placeOrderMsg"></div>
+        </div>
+      </div>
 
-  // Finish order
-  $("finishOrderBtn").addEventListener("click", finishOrder);
+    </div>
+    <div class="modal__backdrop" id="checkoutBackdrop"></div>
+  </div>
 
-  // Success modal
-  $("closeSuccessBtn").addEventListener("click", closeSuccess);
-  $("successBackdrop").addEventListener("click", closeSuccess);
-}
+  <!-- Success Modal -->
+  <div class="modal" id="successModal" aria-hidden="true">
+    <div class="modal__panel modal__panel--small">
+      <div class="successBox">
+        <div class="successIcon">✅</div>
+        <h3>Order placed successfully!</h3>
+        <p class="muted">Your Order ID:</p>
+        <div class="orderId" id="orderIdText">SS-0000</div>
 
-document.addEventListener("DOMContentLoaded", init);
+        <div class="rowBtns">
+          <button class="btn btn--ghost" id="sendWhatsAppBtn">Send on WhatsApp</button>
+          <button class="btn btn--primary" id="closeSuccessBtn">Close</button>
+        </div>
+
+        <div class="muted small" style="margin-top:10px">
+          We will confirm your order after checking the payment screenshot.
+        </div>
+      </div>
+    </div>
+    <div class="modal__backdrop" id="successBackdrop"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
