@@ -1,9 +1,8 @@
 /**
- * OPTIONAL (Google Sheets):
- * Paste your deployed Google Apps Script Web App URL here later.
- * Until then, leave it as "" and checkout will still work.
+ * 1) Deploy Google Apps Script as Web App
+ * 2) Paste the Web App URL here:
  */
-const WEB_APP_URL = ""; // e.g. "https://script.google.com/macros/s/XXXX/exec"
+const WEB_APP_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
 
 // UPI ID placeholder (update later)
 const UPI_ID = "UPI_ID_TO_ADD_LATER";
@@ -51,12 +50,22 @@ const PRODUCTS = [
   },
 ];
 
-const cart = []; // {productId, name, variantLabel, price, qty}
+// {productId, name, variantLabel, price, qty}
+const cart = [];
 
 const $ = (id) => document.getElementById(id);
 
 function formatINR(n){
   return "₹" + Number(n).toLocaleString("en-IN");
+}
+
+function showToast(msg){
+  const t = $("toast");
+  if(!t) return;
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(()=> t.classList.remove("show"), 1400);
 }
 
 function cartTotals(){
@@ -81,7 +90,9 @@ function renderProducts(){
       <h3>${p.name}</h3>
       <p>${p.desc}</p>
       <div class="row">
-        <select class="variantSel" aria-label="Select size">${variantOptions}</select>
+        <select class="variantSel" aria-label="Select size">
+          ${variantOptions}
+        </select>
         <input class="qty" type="number" min="1" value="1" aria-label="Quantity" />
         <button class="btn btn--primary addBtn" type="button">Add to cart</button>
       </div>
@@ -99,9 +110,7 @@ function renderProducts(){
       const q = Math.max(1, Number(qty.value || 1));
       const v = p.variants[idx];
       addToCart(p, v, q);
-      // IMPORTANT: do NOT open cart automatically
-      btn.textContent = "Added!";
-      setTimeout(()=>btn.textContent="Add to cart", 600);
+      showToast(`Added: ${p.name} (${v.label}) ×${q}`);
     });
 
     grid.appendChild(el);
@@ -123,6 +132,7 @@ function addToCart(product, variant, qty){
     });
   }
   updateCartUI();
+  // IMPORTANT: we DO NOT open cart automatically
 }
 
 function removeItem(index){
@@ -137,15 +147,11 @@ function clearCart(){
 
 function updateCartUI(){
   const {items,total} = cartTotals();
-
   $("cartCount").textContent = items;
   $("cartSub").textContent = `${items} item${items===1?"":"s"}`;
   $("cartTotal").textContent = formatINR(total);
-
   $("summaryItems").textContent = items;
   $("summaryTotal").textContent = formatINR(total);
-  $("summaryItems2").textContent = items;
-  $("summaryTotal2").textContent = formatINR(total);
 
   $("checkoutBtn").disabled = items === 0;
   $("clearCartBtn").disabled = items === 0;
@@ -166,13 +172,12 @@ function updateCartUI(){
         <div>
           <div class="cartItemName">${c.name}</div>
           <div class="cartItemMeta">${c.variantLabel} • ${formatINR(c.price)} each</div>
-          <div class="cartItemMeta">Qty: ${c.qty}</div>
+          <div class="muted small" style="margin-top:6px">Qty: ${c.qty}</div>
         </div>
         <div class="cartItemName">${formatINR(c.price * c.qty)}</div>
       </div>
 
       <div class="cartItemActions">
-        <div class="muted small"></div>
         <button class="linkBtn" type="button">Remove</button>
       </div>
     `;
@@ -181,44 +186,68 @@ function updateCartUI(){
   });
 }
 
-/* Drawer / Modal helpers */
-function lockScroll(lock){
-  document.body.classList.toggle("noScroll", lock);
-}
-
 function openCart(){
   $("cartDrawer").classList.add("show");
   $("cartDrawer").setAttribute("aria-hidden","false");
-  lockScroll(true);
 }
 function closeCart(){
   $("cartDrawer").classList.remove("show");
   $("cartDrawer").setAttribute("aria-hidden","true");
-  lockScroll(false);
 }
 
 function openCheckout(){
+  // open modal
   $("checkoutModal").classList.add("show");
   $("checkoutModal").setAttribute("aria-hidden","false");
-  lockScroll(true);
-  showDetailsStep();
+
+  // reset step UI
+  $("stepDetails").style.display = "";
+  $("stepPayment").style.display = "none";
+  $("checkoutTitle").textContent = "Checkout — Delivery details";
+  $("detailsErr").textContent = "";
+  $("placeOrderMsg").textContent = "";
 }
 function closeCheckout(){
   $("checkoutModal").classList.remove("show");
   $("checkoutModal").setAttribute("aria-hidden","true");
-  lockScroll(false);
 }
 
-/* Checkout steps */
-function showDetailsStep(){
-  $("stepDetails").style.display = "block";
-  $("stepPayment").style.display = "none";
-  $("detailsMsg").textContent = "";
-  $("placeOrderMsg").textContent = "";
-}
-function showPaymentStep(){
+function goToPaymentStep(){
+  const {items} = cartTotals();
+  if(items === 0){
+    $("detailsErr").textContent = "Please add products to cart first.";
+    return;
+  }
+
+  const form = $("checkoutForm");
+  const fd = new FormData(form);
+
+  const name = (fd.get("name")||"").toString().trim();
+  const phone = (fd.get("phone")||"").toString().trim();
+  const address = (fd.get("address")||"").toString().trim();
+  const city = (fd.get("city")||"").toString().trim();
+  const state = (fd.get("state")||"").toString().trim();
+  const pincode = (fd.get("pincode")||"").toString().trim();
+
+  if(!name || !phone || !address || !city || !state || !pincode){
+    $("detailsErr").textContent = "Please fill all delivery details.";
+    return;
+  }
+  if(pincode.length < 6){
+    $("detailsErr").textContent = "Please enter a valid 6-digit pincode.";
+    return;
+  }
+
+  $("detailsErr").textContent = "";
   $("stepDetails").style.display = "none";
-  $("stepPayment").style.display = "block";
+  $("stepPayment").style.display = "";
+  $("checkoutTitle").textContent = "Checkout — Payment (UPI Manual)";
+}
+
+function backToDetails(){
+  $("stepDetails").style.display = "";
+  $("stepPayment").style.display = "none";
+  $("checkoutTitle").textContent = "Checkout — Delivery details";
   $("placeOrderMsg").textContent = "";
 }
 
@@ -226,12 +255,10 @@ function openSuccess(orderId){
   $("orderIdText").textContent = orderId;
   $("successModal").classList.add("show");
   $("successModal").setAttribute("aria-hidden","false");
-  lockScroll(true);
 }
 function closeSuccess(){
   $("successModal").classList.remove("show");
   $("successModal").setAttribute("aria-hidden","true");
-  lockScroll(false);
 }
 
 function makeOrderId(){
@@ -248,34 +275,9 @@ function fileToDataUrl(file){
   });
 }
 
-function validateDetails(){
-  const {items} = cartTotals();
-  if(items === 0){
-    $("detailsMsg").textContent = "Your cart is empty.";
-    return null;
-  }
-
-  const form = $("checkoutForm");
-  const fd = new FormData(form);
-
-  const name = (fd.get("name")||"").toString().trim();
-  const phone = (fd.get("phone")||"").toString().trim();
-  const address = (fd.get("address")||"").toString().trim();
-  const city = (fd.get("city")||"").toString().trim();
-  const state = (fd.get("state")||"").toString().trim();
-  const pincode = (fd.get("pincode")||"").toString().trim();
-
-  if(!name || !phone || !address || !city || !state || !pincode){
-    $("detailsMsg").textContent = "Please fill all delivery details.";
-    return null;
-  }
-
-  return { name, phone, address, city, state, pincode };
-}
-
-async function finishOrder(){
-  const details = validateDetails();
-  if(!details) return;
+async function placeOrder(){
+  const {items,total} = cartTotals();
+  if(items === 0) return;
 
   const proofFile = $("paymentProof").files?.[0];
   if(!proofFile){
@@ -283,25 +285,31 @@ async function finishOrder(){
     return;
   }
 
-  $("finishOrderBtn").disabled = true;
-  $("placeOrderMsg").textContent = "Placing order...";
-
-  const {items,total} = cartTotals();
-  const orderId = makeOrderId();
-
-  let proofDataUrl = "";
-  try{
-    proofDataUrl = await fileToDataUrl(proofFile);
-  }catch{
-    $("placeOrderMsg").textContent = "Could not read screenshot. Please try again.";
-    $("finishOrderBtn").disabled = false;
+  if(WEB_APP_URL.includes("PASTE_")){
+    $("placeOrderMsg").textContent = "Admin setup required: add your Google Apps Script Web App URL in script.js";
     return;
   }
+
+  $("placeOrderBtn").disabled = true;
+  $("placeOrderMsg").textContent = "Placing order...";
+
+  const form = $("checkoutForm");
+  const fd = new FormData(form);
+
+  const orderId = makeOrderId();
+  const proofDataUrl = await fileToDataUrl(proofFile);
 
   const payload = {
     orderId,
     createdAt: new Date().toISOString(),
-    customer: details,
+    customer: {
+      name: (fd.get("name")||"").toString().trim(),
+      phone: (fd.get("phone")||"").toString().trim(),
+      address: (fd.get("address")||"").toString().trim(),
+      city: (fd.get("city")||"").toString().trim(),
+      state: (fd.get("state")||"").toString().trim(),
+      pincode: (fd.get("pincode")||"").toString().trim(),
+    },
     delivery: "AP & Telangana only",
     payment: { method: "UPI (Manual)", upiId: UPI_ID },
     cart,
@@ -313,41 +321,30 @@ async function finishOrder(){
     }
   };
 
-  // If Sheets is not setup yet, STILL complete order on website
-  if(!WEB_APP_URL){
-    closeCheckout();
-    closeCart();
-    openSuccess(orderId);
-    clearCart();
-    $("checkoutForm").reset();
-    $("paymentProof").value = "";
-    $("proofHint").textContent = "No file selected";
-    $("finishOrderBtn").disabled = false;
-    return;
-  }
-
-  // If Sheets is setup, try to send it
   try{
-    // IMPORTANT: use no-cors to avoid Google Apps Script CORS blocking
-    await fetch(WEB_APP_URL, {
+    const res = await fetch(WEB_APP_URL, {
       method: "POST",
-      mode: "no-cors",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
-    // We can't read response in no-cors mode (opaque), so we assume success if no error thrown
+    const txt = await res.text();
+    if(!res.ok) throw new Error(txt || "Server error");
+
     closeCheckout();
     closeCart();
     openSuccess(orderId);
+
     clearCart();
-    $("checkoutForm").reset();
+    form.reset();
     $("paymentProof").value = "";
     $("proofHint").textContent = "No file selected";
   }catch(err){
-    $("placeOrderMsg").textContent = "Failed to place order. Please try again. (" + err.message + ")";
+    // "Failed to fetch" = usually Apps Script permission/CORS/deploy issue
+    $("placeOrderMsg").textContent =
+      "Failed to place order. Please check Google Apps Script deployment. (" + err.message + ")";
   }finally{
-    $("finishOrderBtn").disabled = false;
+    $("placeOrderBtn").disabled = false;
   }
 }
 
@@ -364,9 +361,6 @@ function init(){
   $("closeCartBtn").addEventListener("click", closeCart);
   $("drawerBackdrop").addEventListener("click", closeCart);
 
-  // Cart actions
-  $("clearCartBtn").addEventListener("click", clearCart);
-
   // Checkout flow
   $("checkoutBtn").addEventListener("click", () => {
     closeCart();
@@ -376,28 +370,22 @@ function init(){
   $("closeCheckoutBtn").addEventListener("click", closeCheckout);
   $("checkoutBackdrop").addEventListener("click", closeCheckout);
 
-  $("goPaymentBtn").addEventListener("click", () => {
-    const details = validateDetails();
-    if(!details) return;
-    showPaymentStep();
-  });
+  $("goPaymentBtn").addEventListener("click", goToPaymentStep);
+  $("backToDetailsBtn").addEventListener("click", backToDetails);
 
-  $("backToDetailsBtn").addEventListener("click", showDetailsStep);
+  $("clearCartBtn").addEventListener("click", clearCart);
+
+  $("placeOrderBtn").addEventListener("click", placeOrder);
 
   $("paymentProof").addEventListener("change", (e)=>{
     const f = e.target.files?.[0];
     $("proofHint").textContent = f ? `Selected: ${f.name}` : "No file selected";
   });
 
-  $("finishOrderBtn").addEventListener("click", finishOrder);
-
   // Success modal
   $("closeSuccessBtn").addEventListener("click", closeSuccess);
   $("successBackdrop").addEventListener("click", closeSuccess);
-  $("newOrderBtn").addEventListener("click", () => {
-    closeSuccess();
-    window.scrollTo({top:0, behavior:"smooth"});
-  });
+  $("newOrderBtn").addEventListener("click", () => { closeSuccess(); });
 }
 
 document.addEventListener("DOMContentLoaded", init);
